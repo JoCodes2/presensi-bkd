@@ -34,4 +34,10 @@ class PegawaiController extends Controller
     {
         return $this->pegawaiRepo->deleteData($id);
     }
+
+    // notif aktivasi akun
+    public function activateAccount($id)
+    {
+        return $this->pegawaiRepo->activateAccount($id);
+    }
 }
