@@ -13,6 +13,6 @@ class JabatanModel extends Model
     protected $fillable = ['id', 'nama_jabatan', 'created_at', 'updated_at'];
     public function pegawai()
     {
-        return $this->hasMany(User::class, 'id_jabatan', 'id');
+        return $this->hasMany(User::class, 'jabatan_id', 'id');
     }
 }

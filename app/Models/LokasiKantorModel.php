@@ -21,4 +21,8 @@ class LokasiKantorModel extends Model
         'created_at',
         'updated_at'
     ];
+    public function pegawai()
+    {
+        return $this->hasMany(User::class, 'lokasi_kantor_id', 'id');
+    }
 }

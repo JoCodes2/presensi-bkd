@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +23,24 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+
+        'nik',
+        'nip',
+        'alamat',
+        'no_hp',
+        'jenis_kelamin',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'agama',
+
+        'jabatan_id',
+        'lokasi_kantor_id',
+
+        'status',
+        'foto_profile',
+        'role',
+        'created_at',
+        'updated_at',
     ];
 
     /**
@@ -44,5 +64,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function jabatan()
+    {
+        return $this->belongsTo(JabatanModel::class, 'jabatan_id');
+    }
+
+    public function lokasi_kantor()
+    {
+        return $this->belongsTo(LokasiKantorModel::class, 'lokasi_kantor_id');
     }
 }
