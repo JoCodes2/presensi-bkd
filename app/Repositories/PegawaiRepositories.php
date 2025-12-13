@@ -22,7 +22,7 @@ class PegawaiRepositories implements PegawaiInterfaces
     }
     public function getAllData()
     {
-        $data = $this->modelUser::with(['jabatan', 'lokasi_kantor'])->get();
+        $data = $this->modelUser::with(['jabatan', 'lokasiKantor'])->get();
         if (!$data) {
             return $this->dataNotFound();
         }

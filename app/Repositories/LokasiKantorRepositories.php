@@ -39,7 +39,7 @@ class LokasiKantorRepositories implements LokasiKantorInterfaces
             $data->alamat = $request->input('alamat');
             $data->latitude = $request->input('latitude');
             $data->longitude = $request->input('longitude');
-            $data->radius_meter = 500;
+            $data->radius_meter = $request->input('radius_meter');
             $data->is_aktif = true;
             $data->save();
             return $this->success($data);
