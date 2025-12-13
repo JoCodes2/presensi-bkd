@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('presensi', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id');
+            $table->uuid('id_user');
             $table->date('tanggal');
 
             $table->time('jam_masuk')->nullable();
@@ -24,15 +24,6 @@ return new class extends Migration
             $table->decimal('lokasi_keluar_lat', 10, 8)->nullable();
             $table->decimal('lokasi_keluar_long', 11, 8)->nullable();
 
-            $table->string('foto_masuk_path', 255)->nullable();
-            $table->string('foto_keluar_path', 255)->nullable();
-
-            $table->boolean('face_match_masuk')->nullable()->default(false);
-            $table->boolean('face_match_keluar')->nullable()->default(false);
-
-            $table->decimal('face_score_masuk', 5, 2)->nullable();
-            $table->decimal('face_score_keluar', 5, 2)->nullable();
-
             $table->enum('status_masuk', ['tepat_waktu', 'terlambat', 'tidak_absen'])->default('tidak_absen');
             $table->enum('status_keluar', ['tepat_waktu', 'pulang_cepat', 'tidak_absen'])->default('tidak_absen');
 
@@ -40,9 +31,8 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['user_id', 'tanggal']);
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

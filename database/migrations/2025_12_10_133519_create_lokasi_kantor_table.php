@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('alamat');
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);
-            $table->integer('radius_meter')->default(500);
+            $table->integer('radius_meter');
             $table->boolean('is_aktif')->default(true);
             $table->timestamps();
         });

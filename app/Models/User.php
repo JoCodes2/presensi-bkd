@@ -71,7 +71,7 @@ class User extends Authenticatable
         return $this->belongsTo(JabatanModel::class, 'jabatan_id');
     }
 
-    public function lokasi_kantor()
+    public function lokasiKantor()
     {
         return $this->belongsTo(LokasiKantorModel::class, 'lokasi_kantor_id');
     }
