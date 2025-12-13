@@ -4,7 +4,9 @@ namespace App\Repositories;
 
 use App\Http\Requests\PegawaiRequest;
 use App\Interfaces\PegawaiInterfaces;
+use App\Mail\AccountActivated;
 use App\Mail\VerifikasiMail;
+use App\Models\NotifikasiModel;
 use App\Models\User;
 use App\Traits\HttpResponseTraits;
 use Illuminate\Support\Facades\DB;
@@ -16,9 +18,11 @@ class PegawaiRepositories implements PegawaiInterfaces
 {
     use HttpResponseTraits;
     protected $modelUser;
-    public function __construct(User $modelUser)
+    private $modelNotifikasi;
+    public function __construct(User $modelUser, NotifikasiModel $notifikasiModel)
     {
         $this->modelUser = $modelUser;
+        $this->modelNotifikasi = $notifikasiModel;
     }
     public function getAllData()
     {
@@ -181,5 +185,53 @@ class PegawaiRepositories implements PegawaiInterfaces
             DB::rollBack();
             return $this->error($th->getMessage(), 400, $th, class_basename($this), __FUNCTION__);
         }
+    }
+
+
+    // aktivasi akun
+    public function activateAccount($id)
+    {
+        DB::beginTransaction();
+        try {
+            $user = $this->modelUser::find($id);
+
+            if (!$user) {
+                return $this->error('User tidak ditemukan.', 404);
+            }
+
+            if ($user->status === 'active') {
+                return $this->error('Akun sudah aktif.', 400);
+            }
+
+            $user->status = 'active';
+            $user->save();
+
+            $pesanNotifikasi = "Selamat! Akun Anda telah diverifikasi dan diaktifkan. Anda kini dapat menggunakan sistem presensi.";
+
+            $this->createNotificationRecord(
+                $id,
+                'verifikasi_akun',
+                $pesanNotifikasi
+            );
+            Mail::to($user->email)->send(new AccountActivated($user));
+            DB::commit();
+
+            return $this->success($user, 'Akun berhasil diaktifkan dan notifikasi verifikasi dikirim.');
+        } catch (\Exception $th) {
+            DB::rollBack();
+
+            return $this->error($th->getMessage(), 400, $th, class_basename($this), __FUNCTION__);
+        }
+    }
+
+    private function createNotificationRecord(string $id, string $jenis, string $pesan, array $metadata = null)
+    {
+
+        return $this->modelNotifikasi::create([
+            'user_id' => $id,
+            'jenis'   => $jenis,
+            'pesan'   => $pesan,
+            'metadata' => $metadata,
+        ]);
     }
 }

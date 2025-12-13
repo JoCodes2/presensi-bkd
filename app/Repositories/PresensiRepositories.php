@@ -40,22 +40,9 @@ class PresensiRepositories implements PresensiInterfaces
         try {
             $user = $this->userModel->with('lokasiKantor')->find($userId);
 
-            if (!$user) {
-                return $this->error('User tidak ditemukan', 404);
-            }
-
-            if (!$user->lokasiKantor) {
-                return $this->error('Lokasi kantor tidak ditemukan untuk user ini. Harap atur lokasi kantor pada user terkait.', 404);
-            }
-
             $jamKerja = DB::table('jam_kerja')
                 ->where('is_active', true)
                 ->first();
-
-            if (!$jamKerja) {
-                return $this->error('Jam kerja belum diatur atau tidak ada yang aktif', 500);
-            }
-
             if (!$this->cekHariKerja($jamKerja)) {
                 return $this->error('Hari ini bukan hari kerja', 403);
             }
@@ -66,10 +53,6 @@ class PresensiRepositories implements PresensiInterfaces
                 ->where('id_user', $userId)
                 ->where('tanggal', $today)
                 ->first();
-
-            if ($presensi && $presensi->jam_masuk) {
-                return $this->error('Anda sudah presensi masuk hari ini', 400);
-            }
 
             $cekRadius = $this->validasiRadius($lat, $long, $user->lokasiKantor);
             if (!$cekRadius['valid']) {
@@ -102,7 +85,7 @@ class PresensiRepositories implements PresensiInterfaces
 
             return $this->success($data, 'Presensi masuk berhasil');
         } catch (\Exception $th) {
-            return $this->error($th->getMessage(), 500);
+            return $this->error($th->getMessage(), 400, $th, class_basename($this), __FUNCTION__);
         }
     }
 
@@ -126,14 +109,6 @@ class PresensiRepositories implements PresensiInterfaces
 
             $user = $this->userModel->with('lokasiKantor')->find($userId);
 
-            if (!$user) {
-                return $this->error('User tidak ditemukan', 404);
-            }
-
-            if (!$user->lokasiKantor) {
-                return $this->error('Lokasi kantor tidak ditemukan untuk user ini. Harap atur lokasi kantor pada user terkait.', 404);
-            }
-
             $cekRadius = $this->validasiRadius($lat, $long, $user->lokasiKantor);
             if (!$cekRadius['valid']) {
                 return $this->error(
@@ -147,9 +122,6 @@ class PresensiRepositories implements PresensiInterfaces
                 ->where('is_active', true)
                 ->first();
 
-            if (!$jamKerja) {
-                return $this->error('Jam kerja belum diatur atau tidak ada yang aktif', 500);
-            }
 
             $now = now()->format('H:i:s');
 
@@ -167,7 +139,7 @@ class PresensiRepositories implements PresensiInterfaces
 
             return $this->success($presensi, 'Presensi pulang berhasil');
         } catch (\Exception $th) {
-            return $this->error($th->getMessage(), 500);
+            return $this->error($th->getMessage(), 400, $th, class_basename($this), __FUNCTION__);
         }
     }
 

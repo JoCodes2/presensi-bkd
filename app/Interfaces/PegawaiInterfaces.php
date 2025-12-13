@@ -12,5 +12,5 @@ interface PegawaiInterfaces
     public function updateData(PegawaiRequest $request, $id);
     public function deleteData($id);
 
-    public function verifyEmail($token);
+    public function activateAccount($id);
 }
