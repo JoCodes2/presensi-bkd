@@ -25,15 +25,15 @@ return new class extends Migration
             $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
             $table->text('alamat')->nullable();
             $table->string('no_hp', 20)->nullable();
-
+            $table->enum('agama', ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Budha', 'Konghucu'])->nullable();
+            $table->enum('status_ikatan_kerja', ['pns', 'non_pns'])->nullable();
             $table->uuid('jabatan_id');
             $table->uuid('lokasi_kantor_id')->nullable();
 
             $table->string('foto_profile', 255)->nullable();
-            $table->text('embedding_wajah')->nullable();
 
             $table->enum('role', ['admin', 'pegawai']);
-            $table->enum('status', ['pending', 'active', 'rejected']);
+            $table->enum('status', ['pending', 'active', 'rejected'])->default('pending');
 
             $table->timestamps();
 
