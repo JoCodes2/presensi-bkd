@@ -27,6 +27,10 @@ Route::get('/kantor', function () {
 });
 
 
+// route pegawai
+Route::get('/pegawai', function () {
+    return view('pages.pegawai');
+});
 
 /** route api */
 Route::prefix('presensi')->group(function () {
