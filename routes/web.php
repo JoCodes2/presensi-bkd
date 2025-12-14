@@ -18,6 +18,10 @@ Route::get('/jam', function () {
     return view('Admin.jam');
 });
 
+Route::get('/jabatan', function () {
+    return view('Admin.jabatan');
+});
+
 
 
 /** route api */

@@ -40,6 +40,13 @@
                         <p>Jam Kerja</p>
                     </a>
                 </li>
+                <li class="nav-item {{ request()->is('jabatan*') ? 'active' : '' }}">
+                    <a href="{{ url('/jabatan') }}">
+                        <i class="fas fa-clock"></i>
+                        <p>Jabatan</p>
+                    </a>
+                </li>
+
             </ul>
         </div>
     </div>
