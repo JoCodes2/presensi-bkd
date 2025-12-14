@@ -28,10 +28,10 @@
                         <p>Dashboard</p>
                     </a>
                 </li>
-                <li class="nav-item {{ request()->is('pengguna*') ? 'active' : '' }}">
-                    <a href="{{ url('/pengguna') }}">
+                <li class="nav-item {{ request()->is('pegawai*') ? 'active' : '' }}">
+                    <a href="{{ url('/pegawai') }}">
                         <i class="fas fa-users"></i>
-                        <p>Pengguna</p>
+                        <p>Pegawai</p>
                     </a>
             </ul>
         </div>

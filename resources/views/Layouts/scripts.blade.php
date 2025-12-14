@@ -18,7 +18,6 @@
 	<script src="{{ asset('assets/js/core/popper.min.js') }}"></script>
 	<script src="{{ asset('assets/js/core/bootstrap.min.js') }}"></script>
     <script src="{{asset('assets/js/select2.full.min.js')}}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
 	<!-- jQuery UI -->
 	<script src="{{ asset('assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js') }}"></script>

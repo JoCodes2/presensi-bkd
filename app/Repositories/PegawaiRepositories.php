@@ -57,7 +57,7 @@ class PegawaiRepositories implements PegawaiInterfaces
     {
         DB::beginTransaction();
         try {
-            $data = User::create([
+            $data = $this->modelUser::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
@@ -99,7 +99,7 @@ class PegawaiRepositories implements PegawaiInterfaces
     public function getDataById($id)
     {
         try {
-            $data = $this->modelUser::find($id);
+            $data = $this->modelUser::with(['jabatan', 'lokasiKantor'])->find($id);
 
             if (!$data) {
                 return $this->dataNotFound();
