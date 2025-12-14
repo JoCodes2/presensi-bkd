@@ -3,10 +3,14 @@
 namespace App\Repositories;
 
 use App\Interfaces\PresensiInterfaces;
+use App\Mail\AlphaWarning;
+use App\Mail\DailyViolationWarning;
+use App\Models\NotifikasiModel;
 use App\Models\PresensiModel;
 use App\Models\User;
 use App\Traits\HttpResponseTraits;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class PresensiRepositories implements PresensiInterfaces
 {
@@ -14,10 +18,14 @@ class PresensiRepositories implements PresensiInterfaces
 
     protected $presensi;
     protected $userModel;
+    protected $nottif;
 
-    public function __construct(PresensiModel $presensi, User $userModel)
+    public function __construct(PresensiModel $presensi, User $userModel, NotifikasiModel $nottif)
     {
         $this->presensi = $presensi;
+
+        $this->nottif = $nottif;
+
         $this->userModel = $userModel;
     }
 
@@ -35,24 +43,35 @@ class PresensiRepositories implements PresensiInterfaces
         }
     }
 
+    // Di dalam class Repository Anda
+
     public function presensiIn($userId, $lat, $long)
     {
         try {
             $user = $this->userModel->with('lokasiKantor')->find($userId);
 
-            $jamKerja = DB::table('jam_kerja')
-                ->where('is_active', true)
-                ->first();
-            if (!$this->cekHariKerja($jamKerja)) {
-                return $this->error('Hari ini bukan hari kerja', 403);
-            }
+            $jamKerja = DB::table('jam_kerja')->where('is_active', true)->first();
+
 
             $today = now()->toDateString();
+            $now = now()->format('H:i:s');
+            if ($jamKerja->jam_keluar && $now >= $jamKerja->jam_keluar) {
+                $waktuPulang = substr($jamKerja->jam_keluar, 0, 5);
+                return $this->error(
+                    'Anda tidak bisa presensi masuk. Waktu sudah melewati jam pulang kantor (' . $waktuPulang . ').',
+                    403
+                );
+            }
 
-            $presensi = $this->presensi
+            $presensiExisting = $this->presensi
                 ->where('id_user', $userId)
                 ->where('tanggal', $today)
+                ->whereNotNull('jam_masuk')
                 ->first();
+
+            if ($presensiExisting) {
+                return $this->error('Anda sudah presensi masuk hari ini. Hanya satu kali absen masuk yang diperbolehkan.', 400);
+            }
 
             $cekRadius = $this->validasiRadius($lat, $long, $user->lokasiKantor);
             if (!$cekRadius['valid']) {
@@ -63,11 +82,10 @@ class PresensiRepositories implements PresensiInterfaces
                 );
             }
 
-            $now = now()->format('H:i:s');
-
             $statusMasuk = 'tepat_waktu';
-            if ($jamKerja->batas_terlambat && $now > $jamKerja->batas_terlambat) {
+            if ($now > $jamKerja->jam_masuk) {
                 $statusMasuk = 'terlambat';
+                $this->sendViolationAlert($userId, 'terlambat');
             }
 
             $data = $this->presensi->updateOrCreate(
@@ -100,14 +118,12 @@ class PresensiRepositories implements PresensiInterfaces
                 ->first();
 
             if (!$presensi || !$presensi->jam_masuk) {
-                return $this->error('Anda belum presensi masuk', 400);
-            }
-
-            if ($presensi->jam_keluar) {
-                return $this->error('Anda sudah presensi pulang', 400);
+                return $this->error('Anda belum presensi masuk hari ini.', 400);
             }
 
             $user = $this->userModel->with('lokasiKantor')->find($userId);
+            $jamKerja = DB::table('jam_kerja')->where('is_active', true)->first();
+
 
             $cekRadius = $this->validasiRadius($lat, $long, $user->lokasiKantor);
             if (!$cekRadius['valid']) {
@@ -118,23 +134,18 @@ class PresensiRepositories implements PresensiInterfaces
                 );
             }
 
-            $jamKerja = DB::table('jam_kerja')
-                ->where('is_active', true)
-                ->first();
-
-
             $now = now()->format('H:i:s');
 
-            $statusKeluar = 'tepat_waktu';
-            if ($now < $jamKerja->jam_keluar) {
-                $statusKeluar = 'pulang_cepat';
+            if ($jamKerja->jam_keluar && $now < $jamKerja->jam_keluar) {
+                $waktuPulangTerjadwal = substr($jamKerja->jam_keluar, 0, 5);
+                return $this->error('Anda belum bisa presensi pulang. Waktu pulang terjadwal adalah ' . $waktuPulangTerjadwal . '.', 403);
             }
 
             $presensi->update([
                 'jam_keluar' => $now,
                 'lokasi_keluar_lat' => $lat,
                 'lokasi_keluar_long' => $long,
-                'status_keluar' => $statusKeluar,
+                'status_keluar' => 'tepat_waktu',
             ]);
 
             return $this->success($presensi, 'Presensi pulang berhasil');
@@ -196,5 +207,62 @@ class PresensiRepositories implements PresensiInterfaces
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
         return $earthRadius * $c;
+    }
+
+
+    // notif presensi
+    private function sendViolationAlert(string $userId, string $violationType)
+    {
+        $user = $this->userModel::find($userId);
+        if (!$user) {
+            return;
+        }
+
+        $pesan = "Anda tercatat " . str_replace('_', ' ', $violationType) . " pada hari ini.";
+
+        $notifJenis = $violationType;
+
+        $this->createNotificationRecord($userId, $notifJenis, $pesan);
+
+        Mail::to($user->email)->send(new DailyViolationWarning($user, $violationType));
+    }
+
+
+    private function createNotificationRecord(string $userId, string $jenis, string $pesan, array $metadata = null)
+    {
+        return $this->nottif::create([
+            'user_id' => $userId,
+            'jenis'   => $jenis,
+            'pesan'   => $pesan,
+            'metadata' => $metadata,
+        ]);
+    }
+
+
+    public function processSingleAlphaUser(string $userId, string $date)
+    {
+        $user = $this->userModel::find($userId);
+        if (!$user) return;
+
+        $this->presensi::updateOrCreate(
+            ['id_user' => $userId, 'tanggal' => $date],
+            [
+                'jam_masuk' => null,
+                'jam_keluar' => null,
+                'status_masuk' => 'tidak_absen',
+                'status_keluar' => 'tidak_absen',
+                'keterangan' => 'Alpha / Tidak Absen Masuk dan Pulang'
+            ]
+        );
+
+        $this->sendAlphaAlert($user, $date);
+    }
+    private function sendAlphaAlert(User $user, string $date)
+    {
+        $pesan = "Anda tercatat Tidak Absen (Alpha) pada tanggal " . $date . ". Mohon segera klarifikasi.";
+
+        $this->createNotificationRecord($user->id, 'alpha', $pesan);
+
+        Mail::to($user->email)->send(new AlphaWarning($user, $date));
     }
 }
