@@ -3,8 +3,8 @@
         <div class="sidebar-content">
             <div class="user">
                 <div class="avatar-sm float-left mr-2">
-                     <img src="{{ asset('assets/img/Logo_BKD.png') }}" alt="Logo" class="img-fluid" width="70"
-                    height="70">
+                    <img src="{{ asset('assets/img/Logo_BKD.png') }}" alt="Logo" class="img-fluid" width="70"
+                        height="70">
                 </div>
                 <div class="info">
                     <a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
@@ -33,6 +33,13 @@
                         <i class="fas fa-users"></i>
                         <p>Pengguna</p>
                     </a>
+                </li>
+                <li class="nav-item {{ request()->is('jam*') ? 'active' : '' }}">
+                    <a href="{{ url('/jam') }}">
+                        <i class="fas fa-clock"></i>
+                        <p>Jam Kerja</p>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
