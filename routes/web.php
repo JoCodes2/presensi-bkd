@@ -22,6 +22,10 @@ Route::get('/jabatan', function () {
     return view('Admin.jabatan');
 });
 
+Route::get('/kantor', function () {
+    return view('Admin.lokasi');
+});
+
 
 
 /** route api */

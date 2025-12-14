@@ -40,12 +40,19 @@
                         <p>Jam Kerja</p>
                     </a>
                 </li>
+                <li class="nav-item {{ request()->is('kantor*') ? 'active' : '' }}">
+                    <a href="{{ url('/kantor') }}">
+                        <i class="fas fa-building"></i>
+                        <p>Lokasi Kantor</p>
+                    </a>
+                </li>
                 <li class="nav-item {{ request()->is('jabatan*') ? 'active' : '' }}">
                     <a href="{{ url('/jabatan') }}">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-user-tie"></i>
                         <p>Jabatan</p>
                     </a>
                 </li>
+
 
             </ul>
         </div>
