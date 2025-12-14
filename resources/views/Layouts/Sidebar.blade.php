@@ -1,0 +1,39 @@
+<div class="sidebar sidebar-style-2">
+    <div class="sidebar-wrapper scrollbar scrollbar-inner">
+        <div class="sidebar-content">
+            <div class="user">
+                <div class="avatar-sm float-left mr-2">
+                     <img src="{{ asset('assets/img/Logo_BKD.png') }}" alt="Logo" class="img-fluid" width="70"
+                    height="70">
+                </div>
+                <div class="info">
+                    <a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
+                        <span>
+                            {{-- @auth
+                                {{ auth()->user()->name }}
+                            @endauth
+                            @auth
+                                <span class="user-level">{{ auth()->user()->username }}</span>
+                            @endauth --}}
+
+                        </span>
+                    </a>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+            <ul class="nav nav-primary">
+                <li class="nav-item {{ request()->is('dashboard*') ? 'active' : '' }}">
+                    <a href="{{ url('/dashboard') }}">
+                        <i class="fas fa-home"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+                <li class="nav-item {{ request()->is('pengguna*') ? 'active' : '' }}">
+                    <a href="{{ url('/pengguna') }}">
+                        <i class="fas fa-users"></i>
+                        <p>Pengguna</p>
+                    </a>
+            </ul>
+        </div>
+    </div>
+</div>
