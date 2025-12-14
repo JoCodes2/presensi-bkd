@@ -17,14 +17,13 @@ return new class extends Migration
             $table->time('jam_masuk');
             $table->time('jam_keluar');
             $table->time('batas_terlambat')->nullable();
-
-            $table->boolean('senin_kerja')->default(true);
-            $table->boolean('selasa_kerja')->default(true);
-            $table->boolean('rabu_kerja')->default(true);
-            $table->boolean('kamis_kerja')->default(true);
-            $table->boolean('jumat_kerja')->default(true);
-            $table->boolean('sabtu_kerja')->default(false);
-            $table->boolean('minggu_kerja')->default(false);
+            $table->boolean('senin_kerja');
+            $table->boolean('selasa_kerja');
+            $table->boolean('rabu_kerja');
+            $table->boolean('kamis_kerja');
+            $table->boolean('jumat_kerja');
+            $table->boolean('sabtu_kerja');
+            $table->boolean('minggu_kerja');
 
             $table->boolean('is_active')->default(true);
 

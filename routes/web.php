@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CMS\JabatanController;
+use App\Http\Controllers\CMS\JamController;
 use App\Http\Controllers\CMS\LokasiKantorController;
 use App\Http\Controllers\CMS\PegawaiController;
 use App\Http\Controllers\CMS\PresensiController;
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('Admin.pengguna');
+});
+
+Route::get('/jam', function () {
+    return view('Admin.jam');
 });
 
 
@@ -43,6 +48,15 @@ Route::prefix('presensi')->group(function () {
         Route::post('/aktivasi/{id}', 'activateAccount');
         Route::delete('/delete/{id}', 'deleteData');
     });
+
+    Route::prefix('jam')->controller(JamController::class)->group(function () {
+        Route::get('/', 'getAllData');
+        Route::post('/create', 'createData');
+        Route::get('/get/{id}', 'getDataById');
+        Route::post('/update/{id}', 'updateData');
+        Route::delete('/delete/{id}', 'deleteData');
+    });
+
     // presensi
     Route::prefix('bkd')->controller(PresensiController::class)->group(function () {
         Route::get('/', 'getAllData');
