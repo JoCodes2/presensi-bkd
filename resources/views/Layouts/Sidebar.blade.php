@@ -28,6 +28,12 @@
                         <p>Dashboard</p>
                     </a>
                 </li>
+                 <li class="nav-item {{ request()->is('presensi*') ? 'active' : '' }}">
+                    <a href="{{ url('/presensi') }}">
+                        <i class="fas fa-calendar-check"></i>
+                        <p>Presensi Pegawai</p>
+                    </a>
+                </li>
                 <li class="nav-item {{ request()->is('pegawai*') ? 'active' : '' }}">
                     <a href="{{ url('/pegawai') }}">
                         <i class="fas fa-users"></i>
