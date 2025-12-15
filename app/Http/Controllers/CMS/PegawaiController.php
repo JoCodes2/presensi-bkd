@@ -36,8 +36,9 @@ class PegawaiController extends Controller
     }
 
     // notif aktivasi akun
-    public function activateAccount($id)
+    public function handleAccountStatus(Request $request, string $id)
     {
-        return $this->pegawaiRepo->activateAccount($id);
+        $status = $request->input('status');
+        return $this->pegawaiRepo->handleAccountStatus($id, $status);
     }
 }

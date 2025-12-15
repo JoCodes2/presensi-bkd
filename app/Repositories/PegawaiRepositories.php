@@ -189,8 +189,10 @@ class PegawaiRepositories implements PegawaiInterfaces
 
 
     // aktivasi akun
-    public function activateAccount($id)
+    public function handleAccountStatus(string $id, string $status)
     {
+
+
         DB::beginTransaction();
         try {
             $user = $this->modelUser::find($id);
@@ -199,24 +201,34 @@ class PegawaiRepositories implements PegawaiInterfaces
                 return $this->error('User tidak ditemukan.', 404);
             }
 
-            if ($user->status === 'active') {
-                return $this->error('Akun sudah aktif.', 400);
-            }
-
-            $user->status = 'active';
+            $user->status = $status;
             $user->save();
 
-            $pesanNotifikasi = "Selamat! Akun Anda telah diverifikasi dan diaktifkan. Anda kini dapat menggunakan sistem presensi.";
+            $subjekEmail = '';
+            $statusTeks = '';
+
+            if ($status === 'active') {
+                $statusTeks = "diaktifkan";
+                $subjekEmail = "Selamat! Akun Anda Telah Diaktifkan";
+                $pesanNotifikasi = "Selamat! Akun Anda telah diverifikasi dan diaktifkan. Anda kini dapat menggunakan sistem presensi.";
+            } else {
+                $statusTeks = "ditolak";
+                $subjekEmail = "Pemberitahuan: Verifikasi Akun Ditolak";
+                $pesanNotifikasi = "Mohon maaf, permohonan aktivasi akun Anda telah ditolak oleh Administrator.";
+            }
 
             $this->createNotificationRecord(
                 $id,
                 'verifikasi_akun',
-                $pesanNotifikasi
+                $pesanNotifikasi,
+                ['status' => $status]
             );
-            Mail::to($user->email)->send(new AccountActivated($user));
+
+            Mail::to($user->email)->send(new AccountActivated($user, $status, $subjekEmail));
+
             DB::commit();
 
-            return $this->success($user, 'Akun berhasil diaktifkan dan notifikasi verifikasi dikirim.');
+            return $this->success($user, "Akun berhasil {$statusTeks} dan notifikasi verifikasi dikirim.");
         } catch (\Exception $th) {
             DB::rollBack();
 
@@ -226,7 +238,6 @@ class PegawaiRepositories implements PegawaiInterfaces
 
     private function createNotificationRecord(string $id, string $jenis, string $pesan, array $metadata = null)
     {
-
         return $this->modelNotifikasi::create([
             'user_id' => $id,
             'jenis'   => $jenis,

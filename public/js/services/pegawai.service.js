@@ -129,6 +129,37 @@ class pegawaiService {
             $("#pegawaiTable tbody").html(`<tr><td colspan="11" class="text-center text-danger">Gagal memuat data: ${error.message || error}</td></tr>`);
         }
     }
+    async updateAccountStatus(id, status) {
+        const actionText = status === 'active' ? 'mengaktifkan' : 'menolak';
+
+        try {
+            const result = await confirmDeleteAlert(`Apakah Anda yakin ingin ${actionText} akun ini?`);
+
+            if (result.isConfirmed) {
+                const formData = new FormData();
+                formData.append('status', status);
+                formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+                const responseData = await this.ajaxRequest(
+                    `${appUrl}/presensi/pegawai/aktivasi/${id}`,
+                    'POST',
+                    formData
+                );
+
+                console.log(responseData);
+
+                if (responseData.code === 200) {
+                    await successAlert(`Akun berhasil di${status === 'active' ? 'aktifkan' : 'tolak'}!`).then(() => {
+                        this.getAllData();
+                    });
+                } else {
+                    errorAlert(responseData.message || 'Gagal memperbarui status akun.');
+                }
+            }
+        } catch (error) {
+            console.error('Error saat update status:', error);
+            errorAlert('Terjadi kesalahan saat pembaruan status.');
+        }
+    }
 
     async getDataById(id) {
         try {
@@ -159,22 +190,17 @@ class pegawaiService {
     }
 
 
-    // Di dalam pegawai.service.js, class PegawaiService
 
     renderDetailModal(data) {
-        // --- Penyesuaian Nilai dan Fallback ---
-        // Ganti 'path/ke/default/profile.png' dengan path default foto di aplikasi Anda
-        // Data dummy dari screenshot: foto tidak terlihat, tapi kita asumsikan ada path
         const fotoUrl = data.foto_profile ? `${appUrl}/${data.foto_profile}` : 'path/ke/default/profile.png';
 
-        // Data dari screenshot/JSON sebelumnya
         const jabatan = data.jabatan && data.jabatan.nama_jabatan ? data.jabatan.nama_jabatan : 'Kepala Dinas'; // Diambil dari screenshot
         const lokasi = data.lokasi_kantor && data.lokasi_kantor.nama_lokasi ? data.lokasi_kantor.nama_lokasi : 'BKD p'; // Diambil dari screenshot
 
-        const statusIkatan = data.status_ikatan_kerja || '-'; // Diambil dari screenshot
+        const statusIkatan = data.status_ikatan_kerja || '-';
         const jenisKelamin = data.jenis_kelamin === 'L' ? 'Laki-laki' : (data.jenis_kelamin === 'P' ? 'Perempuan' : '-');
-        const agama = data.agama || 'Hindu'; // Diambil dari screenshot
-        const alamat = data.alamat || 'Palu'; // Diambil dari screenshot
+        const agama = data.agama || 'Hindu';
+        const alamat = data.alamat || 'Palu';
         const tempatTanggalLahir = `${data.tempat_lahir || 'Palu'}, ${data.tanggal_lahir || '2001-01-10'}`; // Diambil dari screenshot
 
         const statusAkunClass = data.status === 'active' ? 'success' : (data.status === 'pending' ? 'warning' : 'danger');

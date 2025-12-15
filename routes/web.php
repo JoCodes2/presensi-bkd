@@ -57,7 +57,7 @@ Route::prefix('presensi')->group(function () {
         Route::post('/create', 'createData');
         Route::get('/get/{id}', 'getDataById');
         Route::post('/update/{id}', 'updateData');
-        Route::post('/aktivasi/{id}', 'activateAccount');
+        Route::post('/aktivasi/{id}', 'handleAccountStatus');
         Route::delete('/delete/{id}', 'deleteData');
     });
 
