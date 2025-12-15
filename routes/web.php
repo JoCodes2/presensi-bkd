@@ -35,6 +35,9 @@ Route::get('/pegawai', function () {
 Route::get('/notif', function () {
     return view('pages.notif');
 });
+Route::get('/presensi', function () {
+    return view('pages.presensi');
+});
 
 /** route api */
 Route::prefix('presensi')->group(function () {
