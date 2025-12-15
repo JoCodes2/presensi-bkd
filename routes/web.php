@@ -3,6 +3,7 @@
 use App\Http\Controllers\CMS\JabatanController;
 use App\Http\Controllers\CMS\JamController;
 use App\Http\Controllers\CMS\LokasiKantorController;
+use App\Http\Controllers\CMS\NotifikasiController;
 use App\Http\Controllers\CMS\PegawaiController;
 use App\Http\Controllers\CMS\PresensiController;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
-    return view('Admin.pengguna');
+    return view('pages.dashboard');
 });
 
 Route::get('/jam', function () {
@@ -30,6 +31,9 @@ Route::get('/kantor', function () {
 // route pegawai
 Route::get('/pegawai', function () {
     return view('pages.pegawai');
+});
+Route::get('/notif', function () {
+    return view('pages.notif');
 });
 
 /** route api */
@@ -57,7 +61,7 @@ Route::prefix('presensi')->group(function () {
         Route::post('/create', 'createData');
         Route::get('/get/{id}', 'getDataById');
         Route::post('/update/{id}', 'updateData');
-        Route::post('/aktivasi/{id}', 'activateAccount');
+        Route::post('/aktivasi/{id}', 'handleAccountStatus');
         Route::delete('/delete/{id}', 'deleteData');
     });
 
@@ -76,5 +80,9 @@ Route::prefix('presensi')->group(function () {
         Route::post('/out', 'presensiOut');
     });
 
-    // Route::get('/auth/verify-email/{token}', [AuthController::class, 'verifyEmail']);
+    // presensi
+    Route::prefix('notifikasi')->controller(NotifikasiController::class)->group(function () {
+        Route::get('/', 'getAllData');
+        Route::post('/mark-all-read', 'markAllAsRead');
+    });
 });

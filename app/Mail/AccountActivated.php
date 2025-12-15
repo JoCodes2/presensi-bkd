@@ -14,13 +14,17 @@ class AccountActivated extends Mailable
     use Queueable, SerializesModels;
 
     public $user;
+    public $status;
+    public $subjek;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(User $user)
+    public function __construct(User $user, string $status, string $subjek)
     {
         $this->user = $user;
+        $this->status = $status;
+        $this->subjek = $subjek;
     }
 
     /**
@@ -29,7 +33,7 @@ class AccountActivated extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Selamat! Akun Anda Telah Diaktifkan',
+            subject: $this->subjek, // Menggunakan subjek dinamis
         );
     }
 
@@ -43,6 +47,8 @@ class AccountActivated extends Mailable
             with: [
                 'name' => $this->user->name,
                 'email' => $this->user->email,
+                'status' => $this->status,
+                'user' => $this->user,
             ],
         );
     }

@@ -13,4 +13,16 @@ $(document).ready(function () {
         const id = $(this).data('id');
         pegawai.deleteData(id);
     });
+
+    $(document).on('click', '.setuju-pegawai', async (e) => {
+        e.preventDefault();
+        const id = $(e.currentTarget).data('id');
+        pegawai.updateAccountStatus(id, 'aktive');
+    });
+
+    $(document).on('click', '.tolak-pegawai', async (e) => {
+        e.preventDefault();
+        const id = $(e.currentTarget).data('id');
+        pegawai.updateAccountStatus(id, 'rejected');
+    });
 });

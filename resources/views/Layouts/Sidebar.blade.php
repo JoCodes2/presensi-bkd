@@ -22,8 +22,8 @@
                 </div>
             </div>
             <ul class="nav nav-primary">
-                <li class="nav-item {{ request()->is('dashboard*') ? 'active' : '' }}">
-                    <a href="{{ url('/dashboard') }}">
+                <li class="nav-item {{ request()->is('/') ? 'active' : '' }}">
+                    <a href="{{ url('/') }}">
                         <i class="fas fa-home"></i>
                         <p>Dashboard</p>
                     </a>
@@ -52,8 +52,6 @@
                         <p>Jabatan</p>
                     </a>
                 </li>
-
-
             </ul>
         </div>
     </div>
