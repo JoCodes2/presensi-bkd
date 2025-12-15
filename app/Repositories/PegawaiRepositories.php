@@ -212,7 +212,7 @@ class PegawaiRepositories implements PegawaiInterfaces
                 $subjekEmail = "Selamat! Akun Anda Telah Diaktifkan";
                 $pesanNotifikasi = "Selamat! Akun Anda telah diverifikasi dan diaktifkan. Anda kini dapat menggunakan sistem presensi.";
             } else {
-                $statusTeks = "ditolak";
+                $statusTeks = "rejected";
                 $subjekEmail = "Pemberitahuan: Verifikasi Akun Ditolak";
                 $pesanNotifikasi = "Mohon maaf, permohonan aktivasi akun Anda telah ditolak oleh Administrator.";
             }

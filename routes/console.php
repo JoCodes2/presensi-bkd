@@ -25,4 +25,4 @@ Schedule::call(function () {
     foreach ($alphaUserIds as $userId) {
         AlphaNotificationJob::dispatch($userId, $yesterday);
     }
-})->dailyAt('17:00');
+})->everyMinute();

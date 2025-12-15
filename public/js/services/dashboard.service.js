@@ -70,10 +70,8 @@ class DashboardService {
                 return { text: 'Hadir Tepat Waktu', class: 'badge-success' };
             case 'terlambat':
                 return { text: 'Terlambat', class: 'badge-warning' };
-            case 'alpha':
-                return { text: 'Alpha', class: 'badge-danger' };
             case 'tidak_absen':
-                return { text: 'Belum Absen', class: 'badge-secondary' };
+                return { text: 'Tidak Absen (Alpha)', class: 'badge-danger' };
             default:
                 return { text: 'N/A', class: 'badge-secondary' };
         }
@@ -90,9 +88,7 @@ class DashboardService {
             case 'pulang_cepat':
                 return { text: 'Pulang Cepat', class: 'badge-info' };
             case 'tidak_absen':
-                return { text: 'Belum Pulang', class: 'badge-secondary' };
-            case 'tidak_pulang':
-                return { text: 'Tidak Absen Pulang', class: 'badge-warning' };
+                return { text: 'Tidak Absen (Alpha)', class: 'badge-danger' };
             default:
                 return { text: 'N/A', class: 'badge-secondary' };
         }

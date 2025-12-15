@@ -17,7 +17,7 @@ $(document).ready(function () {
     $(document).on('click', '.setuju-pegawai', async (e) => {
         e.preventDefault();
         const id = $(e.currentTarget).data('id');
-        pegawai.updateAccountStatus(id, 'aktive');
+        pegawai.updateAccountStatus(id, 'active');
     });
 
     $(document).on('click', '.tolak-pegawai', async (e) => {
