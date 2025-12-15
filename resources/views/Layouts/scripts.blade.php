@@ -75,7 +75,12 @@
 
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment-with-locales.min.js"></script>
 
+<script>
+    moment.locale('id');
+</script>
+ <script type="module" src="{{ asset('js/controllers/notifikasi.controller.js')}}"></script>
 <script>
     const urlLogout = 'v1/logout'
     $(document).ready(function() {
