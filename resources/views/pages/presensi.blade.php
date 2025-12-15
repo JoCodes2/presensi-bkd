@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <x-base-header title="Daftar Presensi Pegawai" icon="fas fa-users">
+    <x-base-header title="Daftar Presensi Pegawai" icon="fas fa-calendar-check">
 
         <x-base-body :show-add-button="false" :show-export-button="true">
 
@@ -12,20 +12,18 @@
                     <tr>
                         <th>No</th>
                         <th>Nama</th>
-                        <th>NIK</th>
-                        <th>NIP</th>
-                        <th>No Telepon</th>
-                        <th>Email</th>
-                        <th>Jabatan</th>
-                        <th>Status Ikatan kerja</th>
-                        <th>Status Akun</th>
-                        <th>Aktivasi Akun</th>
-                        <th>Aksi</th>
+                        <th>Tanggal</th>
+                        <th>Jam Masuk</th>
+                        <th>Jam Pulang</th>
+                        <th>Status Masuk</th>
+                        <th>Status Pulang</th>
+                        <th>Keterangan</th>
+                        {{-- Tambahkan kolom Aksi jika diperlukan --}}
                     </tr>
                 </x-slot>
 
                 <x-slot name="tbody">
-                    {{-- TBODY content here if any static content is needed --}}
+                    {{-- Data akan diisi oleh DataTables melalui AJAX --}}
                 </x-slot>
 
             </x-base-table>
@@ -35,6 +33,7 @@
     </x-base-header>
 
 @endsection
+
 @section('script')
  <script type="module" src="{{ asset('js/controllers/presensi.controller.js')}}"></script>
 @endsection
