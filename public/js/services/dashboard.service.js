@@ -183,11 +183,16 @@ class DashboardService {
         $tablePulangBody.html(htmlPulang);
     }
 
+
     /**
-     * Fungsi utama untuk mengambil semua data dan merender (Tidak Berubah).
+     * Fungsi utama untuk mengambil semua data dan merender.
+     * Ditambahkan logika filter Tanggal Hari Ini.
      */
     async loadDashboardData() {
         try {
+            // 1. Dapatkan tanggal hari ini dalam format YYYY-MM-DD (sesuai format database/API)
+            const today = new Date().toISOString().split('T')[0];
+
             // Tampilkan loading state
             $('#yourAttendanceCard').find('.card-body').html('<div class="text-center p-5"><i class="fas fa-sync-alt fa-spin mr-2"></i> Memuat Data Jam Kerja...</div>');
             $('#tableAbsenMasuk tbody').html('<tr><td colspan="3" class="text-center text-muted"><i class="fas fa-sync-alt fa-spin mr-1"></i> Memuat Data Pegawai...</td></tr>');
@@ -197,18 +202,20 @@ class DashboardService {
                 this.ajaxRequest(`${appUrl}/presensi/jam/`, 'GET'),
                 this.ajaxRequest(`${appUrl}/presensi/bkd/`, 'GET'),
             ]);
+
             const jamKerja = jamKerjaResponse.data && jamKerjaResponse.data.length > 0 ? jamKerjaResponse.data[0] : null;
 
-            const absensiPegawai = absensiPegawaiResponse.data || [];
+            // 2. FILTER DATA: Hanya ambil data yang tanggalnya sama dengan hari ini
+            const allData = absensiPegawaiResponse.data || [];
+            const absensiPegawaiHariIni = allData.filter(absen => absen.tanggal === today);
 
+            // 3. RENDER
             this.renderYourAttendance(jamKerja);
-
-            this.renderEmployeeAttendance(absensiPegawai);
+            this.renderEmployeeAttendance(absensiPegawaiHariIni);
 
         } catch (error) {
             console.error('Gagal memuat data dashboard:', error);
-
-            $('#yourAttendanceCard').find('.card-body').html('<div class="text-center p-5 text-danger"><i class="fas fa-exclamation-circle mr-2"></i> Gagal memuat data dashboard. Cek koneksi API.</div>');
+            $('#yourAttendanceCard').find('.card-body').html('<div class="text-center p-5 text-danger"><i class="fas fa-exclamation-circle mr-2"></i> Gagal memuat data dashboard.</div>');
             const errorRow = '<tr><td colspan="3" class="text-center text-danger">Gagal memuat data.</td></tr>';
             $('#tableAbsenMasuk tbody').html(errorRow);
             $('#tableAbsenPulang tbody').html(errorRow);
