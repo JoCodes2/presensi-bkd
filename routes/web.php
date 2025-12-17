@@ -27,6 +27,9 @@ Route::get('/kantor', function () {
     return view('Admin.lokasi');
 });
 
+Route::get('/absensi', function () {
+    return view('Ui.absensi');
+});
 
 // route pegawai
 Route::get('/pegawai', function () {
