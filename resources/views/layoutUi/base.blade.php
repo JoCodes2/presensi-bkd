@@ -11,7 +11,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+        let appUrl = '{{ env('APP_URL') }}';
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -65,7 +68,7 @@
         <div>
             @yield('content')
         </div>
-     
+
 
         <!-- Bottom Navigation -->
         @include('layoutUi.footer')
@@ -111,6 +114,10 @@
         <!-- Modal untuk lokasi -->
     </div>
     @yield('scripts')
+    <!--   Core JS Files   -->
+<script src="{{ asset('assets/js/core/jquery.3.2.1.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
     {{-- <script>
         // Toggle WFO/WFH buttons
         const wfoBtn = document.getElementById('wfo-btn');
