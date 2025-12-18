@@ -31,6 +31,22 @@ Route::get('/absensi', function () {
     return view('Ui.absensi');
 });
 
+Route::get('/profil-ui', function () {
+    return view('Ui.profil-ui');
+});
+
+Route::get('/notifikasi-ui', function () {
+    return view('Ui.notifikasi-ui');
+});
+
+Route::get('/auth', function () {
+    return view('Auth.auth');
+});
+
+Route::get('/register', function () {
+    return view('Auth.register');
+});
+
 // route pegawai
 Route::get('/pegawai', function () {
     return view('pages.pegawai');
