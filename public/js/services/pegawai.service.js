@@ -14,12 +14,10 @@ class pegawaiService {
     }
 
     async getAllData() {
-        // 1. Bersihkan DataTables (jika sudah diinisialisasi)
         if ($.fn.dataTable.isDataTable('#pegawaiTable')) {
             $('#pegawaiTable').DataTable().clear().destroy();
         }
 
-        // 2. Kosongkan DOM tbody
         $("#pegawaiTable tbody").empty();
 
         try {
@@ -27,76 +25,78 @@ class pegawaiService {
 
             if (responseData && responseData.data && Array.isArray(responseData.data)) {
 
-                const dataPegawai = responseData.data;
+                // 🔐 FILTER HANYA ROLE PEGAWAI
+                const dataPegawai = responseData.data.filter(item => item.role === 'pegawai');
 
                 let tableBody = '';
+
+                if (dataPegawai.length === 0) {
+                    $("#pegawaiTable tbody").html(
+                        `<tr><td colspan="11" class="text-center">Tidak ada data pegawai.</td></tr>`
+                    );
+                    return;
+                }
 
                 dataPegawai.forEach((item, index) => {
 
                     const jabatan = item.jabatan ? item.jabatan.nama_jabatan : '-';
 
-                    // --- 1. Badge Status Ikatan Kerja ---
-                    let statusIkatanKerjaBadge;
-                    if (item.status_ikatan_kerja === 'pns') {
-                        statusIkatanKerjaBadge = `<span class="badge badge-success">PNS</span>`;
-                    } else if (item.status_ikatan_kerja === 'non_pns') {
-                        statusIkatanKerjaBadge = `<span class="badge badge-danger">NON PNS</span>`;
-                    } else {
-                        statusIkatanKerjaBadge = `<span class="badge badge-secondary">-</span>`;
-                    }
+                    // Status Ikatan Kerja
+                    let statusIkatanKerjaBadge =
+                        item.status_ikatan_kerja === 'pns'
+                            ? `<span class="badge badge-success">PNS</span>`
+                            : item.status_ikatan_kerja === 'non_pns'
+                                ? `<span class="badge badge-danger">NON PNS</span>`
+                                : `<span class="badge badge-secondary">-</span>`;
 
-                    // --- 2. Badge Status Akun ---
-                    let statusAkunBadge;
-                    if (item.status === 'active') {
-                        statusAkunBadge = `<span class="badge badge-success">Aktif</span>`;
-                    } else if (item.status === 'pending') {
-                        statusAkunBadge = `<span class="badge badge-warning">Pending</span>`;
-                    } else if (item.status === 'rejected') {
-                        statusAkunBadge = `<span class="badge badge-danger">Ditolak</span>`;
-                    } else {
-                        statusAkunBadge = `<span class="badge badge-secondary">-</span>`;
-                    }
+                    // Status Akun
+                    let statusAkunBadge =
+                        item.status === 'active'
+                            ? `<span class="badge badge-success">Aktif</span>`
+                            : item.status === 'pending'
+                                ? `<span class="badge badge-warning">Pending</span>`
+                                : item.status === 'rejected'
+                                    ? `<span class="badge badge-danger">Ditolak</span>`
+                                    : `<span class="badge badge-secondary">-</span>`;
 
-                    // --- 3. Kolom Aktivasi Akun (Tombol Kondisional) ---
+                    // Aktivasi Akun
                     let aktivasiButtons = `<div class="d-flex gap-2 justify-content-center">`;
 
                     if (item.status === 'pending') {
                         aktivasiButtons += `
-                        <a href="#" class="setuju-pegawai btn btn-xs btn-success" data-id="${item.id}" title="Setuju">
+                        <a href="#" class="setuju-pegawai btn btn-xs btn-success" data-id="${item.id}">
                             <i class="fas fa-check"></i>
                         </a>
-                        <a href="#" class="tolak-pegawai btn btn-xs btn-warning" data-id="${item.id}" title="Tolak">
+                        <a href="#" class="tolak-pegawai btn btn-xs btn-warning" data-id="${item.id}">
                             <i class="fas fa-times"></i>
                         </a>
                     `;
                     } else {
-                        const statusText = item.status === 'active' ? 'Aktif' : (item.status === 'rejected' ? 'Ditolak' : 'Diproses');
+                        const statusText = item.status === 'active' ? 'Aktif' : 'Ditolak';
                         const statusClass = item.status === 'active' ? 'text-success' : 'text-secondary';
-                        // Menggunakan fas fa-check-circle hanya untuk status 'active', lainnya kosong atau sesuai status
                         aktivasiButtons += `<i class="fas fa-check-circle ${statusClass}" title="Status: ${statusText}"></i>`;
                     }
+
                     aktivasiButtons += `</div>`;
 
-
-                    // --- 4. Kolom Aksi Manajemen (Detail dan Hapus) ---
-                    let aksiButtons = `
+                    // Aksi
+                    const aksiButtons = `
                     <div class="d-flex gap-2 justify-content-center">
-                        <a href="#" class="detail-pegawai btn btn-xs btn-info" data-id="${item.id}" title="Detail">
+                        <a href="#" class="detail-pegawai btn btn-xs btn-info" data-id="${item.id}">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="#" class="delete-pegawai btn btn-xs btn-danger" data-id="${item.id}" title="Hapus">
+                        <a href="#" class="delete-pegawai btn btn-xs btn-danger" data-id="${item.id}">
                             <i class="fas fa-trash"></i>
                         </a>
                     </div>
                 `;
 
-                    // PENTING: Struktur baris tabel dirapikan untuk mencegah duplikasi baris/kolom
                     tableBody += `
                     <tr>
                         <td>${index + 1}</td>
                         <td>${item.name}</td>
                         <td>${item.nik}</td>
-                        <td>${item.nip}</td>
+                        <td>${item.nip || '-'}</td>
                         <td>${item.no_hp || '-'}</td>
                         <td>${item.email}</td>
                         <td>${jabatan}</td>
@@ -108,10 +108,8 @@ class pegawaiService {
                 `;
                 });
 
-                // 3. Masukkan data ke tbody
                 $("#pegawaiTable tbody").html(tableBody);
 
-                // 4. Inisialisasi ulang DataTables
                 $('#pegawaiTable').DataTable({
                     paging: true,
                     searching: true,
@@ -122,13 +120,18 @@ class pegawaiService {
                 });
 
             } else {
-                $("#pegawaiTable tbody").html(`<tr><td colspan="11" class="text-center">Tidak ada data pegawai yang tersedia.</td></tr>`);
+                $("#pegawaiTable tbody").html(
+                    `<tr><td colspan="11" class="text-center">Tidak ada data pegawai.</td></tr>`
+                );
             }
         } catch (error) {
             console.error('Error saat mengambil data:', error);
-            $("#pegawaiTable tbody").html(`<tr><td colspan="11" class="text-center text-danger">Gagal memuat data: ${error.message || error}</td></tr>`);
+            $("#pegawaiTable tbody").html(
+                `<tr><td colspan="11" class="text-center text-danger">Gagal memuat data.</td></tr>`
+            );
         }
     }
+
     async updateAccountStatus(id, status) {
         const actionText = status === 'active' ? 'mengaktifkan' : 'menolak';
 
@@ -136,6 +139,14 @@ class pegawaiService {
             const result = await confirmDeleteAlert(`Apakah Anda yakin ingin ${actionText} akun ini?`);
 
             if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Mohon Tunggu',
+                    text: `Sedang ${actionText} akun...`,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 const formData = new FormData();
                 formData.append('status', status);
                 formData.append('_token', $('meta[name="csrf-token"]').attr('content'));

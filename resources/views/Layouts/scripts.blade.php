@@ -81,8 +81,9 @@
     moment.locale('id');
 </script>
  <script type="module" src="{{ asset('js/controllers/notifikasi.controller.js')}}"></script>
+
 <script>
-    const urlLogout = 'v1/logout'
+    const urlLogout = 'presensi/logout'
     $(document).ready(function() {
         $('#iconLogout').click(function(e) {
             Swal.fire({

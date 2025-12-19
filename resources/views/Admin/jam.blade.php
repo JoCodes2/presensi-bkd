@@ -166,8 +166,12 @@
                         let tableBody = "";
 
                         $.each(response.data, function(index, item) {
-
-                            // Hari kerja aktif
+                              if (response.data.length >= 1) {
+                                    $('#myBtn').hide(); // sembunyikan tombol tambah
+                                } else {
+                                    $('#myBtn').show(); // tampilkan jika belum ada data
+                                }
+                                                        // Hari kerja aktif
                             let hariKerja = [];
                             if (item.senin_kerja) hariKerja.push("Senin");
                             if (item.selasa_kerja) hariKerja.push("Selasa");
@@ -198,10 +202,6 @@
                                 "</td>";
 
                             tableBody += "<td class='text-center'>";
-                            tableBody +=
-                                "<button type='button' class='btn btn-outline-primary btn-sm edit-btn' data-id='" +
-                                item.id +
-                                "'><i class='fas fa-edit'></i></button> ";
                             tableBody +=
                                 "<button type='button' class='btn btn-outline-danger btn-sm delete-confirm' data-id='" +
                                 item.id +

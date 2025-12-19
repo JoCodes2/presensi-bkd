@@ -23,28 +23,44 @@ class PegawaiRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Ambil ID user dari parameter route (misal: /update/{id})
+        $userId = $this->route('id');
+
         return [
-            'name'             => 'required|string|max:150',
-            'email'            => 'required|email|max:150|unique:users,email,' . $this->id . ',id',
-            'password'         => 'required|min:8',
+            'name'     => 'required|string|max:150',
+
+            // Tambahkan pengecualian ID agar tidak terkena error "Email/NIK sudah terdaftar" milik sendiri
+            'email'    => 'required|email|max:150|unique:users,email,' . $userId,
+            'nik'      => 'required|string|max:20|unique:users,nik,' . $userId,
+
+            // Buat password menjadi nullable agar tidak wajib diisi saat update
+            'password' => 'nullable|min:8',
             'password_confirmation' => 'required_with:password|same:password',
 
-            'nik'              => 'required|string|max:20',
-            'nip'              => 'nullable|string|max:20',
-            'tempat_lahir'     => 'nullable|string|max:80',
-            'tanggal_lahir'    => 'nullable|date',
-            'jenis_kelamin'    => 'nullable|in:L,P',
-            'alamat'           => 'nullable|string',
-            'no_hp'            => 'nullable|string|max:20',
+            'nip'      => 'nullable|string|max:20',
+            'tempat_lahir'  => 'nullable|string|max:80',
+            'tanggal_lahir' => 'nullable|date',
+            'jenis_kelamin' => 'nullable|in:L,P',
+            'alamat'  => 'nullable|string',
+            'no_hp'   => 'nullable|string|max:20',
 
-            'agama'            => 'nullable|in:Islam,Kristen,Katolik,Hindu,Budha,Konghucu',
+            'agama'   => 'nullable|in:Islam,Kristen,Katolik,Hindu,Budha,Konghucu',
+            'status_ikatan_kerja' => 'nullable|in:pns,non_pns',
 
+            // Pastikan ini dikirim via hidden input di frontend
             'jabatan_id'       => 'required|uuid|exists:jabatan,id',
             'lokasi_kantor_id' => 'nullable|uuid|exists:lokasi_kantor,id',
 
-            'foto_profile'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto_profile' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ];
+    }
 
-            'status'           => 'nullable|in:pending,active,rejected',
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'Email sudah terdaftar',
+            'nik.unique'   => 'NIK sudah terdaftar',
+            'nik.required' => 'NIK wajib diisi',
         ];
     }
 

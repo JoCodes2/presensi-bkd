@@ -1,0 +1,44 @@
+/* Pastikan container hari memiliki posisi relatif dan layout kolom */
+.fc-daygrid-day-frame {
+    position: relative;
+    min-height: 100px !important; /* Beri ruang yang cukup */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Label Hari Libur */
+.holiday-label {
+    font-size: 9px;
+    color: #e11d48;
+    font-weight: 800;
+    text-align: center;
+    padding: 4px;
+    text-transform: uppercase;
+    line-height: 1.2;
+    background-color: rgba(
+        225,
+        29,
+        72,
+        0.05
+    ); /* Background sangat tipis agar teks terbaca */
+    border-radius: 4px;
+    margin: 4px;
+
+    /* Menghilangkan ketergantungan pada absolute agar tetap di dalam box */
+    margin-top: auto; /* Mendorong label ke dasar sel */
+    pointer-events: none;
+    z-index: 1;
+}
+
+.bg-libur-nasional {
+    background-color: #fff1f2 !important;
+}
+
+.bg-libur-weekend {
+    background-color: #f8fafc !important;
+}
+
+.fc-daygrid-day-events {
+    margin-bottom: 30px !important;
+}

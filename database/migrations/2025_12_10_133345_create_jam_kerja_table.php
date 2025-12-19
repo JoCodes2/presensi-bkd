@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nama_shift', 100);
             $table->time('jam_masuk');
             $table->time('jam_keluar');
-            $table->time('batas_terlambat')->nullable();
+            $table->time('batas_terlambat')->default('00:05:00');
             $table->boolean('senin_kerja');
             $table->boolean('selasa_kerja');
             $table->boolean('rabu_kerja');
