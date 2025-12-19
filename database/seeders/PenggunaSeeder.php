@@ -35,7 +35,7 @@ class PenggunaSeeder extends Seeder
             'jabatan_id' => $jabatan1->id,
             'lokasi_kantor_id' => null,
             'role' => 'admin',
-            'status' => 'active'
+            'status' => 'pending'
         ]);
     }
 }

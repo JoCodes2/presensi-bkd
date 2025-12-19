@@ -30,6 +30,22 @@ Route::prefix('presensi/pegawai')->controller(PegawaiController::class)->group(f
     Route::post('/aktivasi/{id}', 'handleAccountStatus');
     Route::delete('/delete/{id}', 'deleteData');
 });
+// lokasi kantor
+Route::prefix('presensi/kantor')->controller(LokasiKantorController::class)->group(function () {
+    Route::get('/', 'getAllData');
+    Route::post('/create', 'createData');
+    Route::get('/get/{id}', 'getDataById');
+    Route::post('/update/{id}', 'updateData');
+    Route::delete('/delete/{id}', 'deleteData');
+});
+// jabatan
+Route::prefix('presensi/jabatan')->controller(JabatanController::class)->group(function () {
+    Route::get('/', 'getAllData');
+    Route::post('/create', 'createData');
+    Route::get('/get/{id}', 'getDataById');
+    Route::post('/update/{id}', 'updateData');
+    Route::delete('/delete/{id}', 'deleteData');
+});
 
 Route::middleware(['auth', 'web'])->group(function () {
 
@@ -75,24 +91,6 @@ Route::middleware(['auth', 'web'])->group(function () {
     /** route api */
     Route::prefix('presensi')->group(function () {
 
-        // lokasi kantor
-        Route::prefix('kantor')->controller(LokasiKantorController::class)->group(function () {
-            Route::get('/', 'getAllData');
-            Route::post('/create', 'createData');
-            Route::get('/get/{id}', 'getDataById');
-            Route::post('/update/{id}', 'updateData');
-            Route::delete('/delete/{id}', 'deleteData');
-        });
-        // jabatan
-        Route::prefix('jabatan')->controller(JabatanController::class)->group(function () {
-            Route::get('/', 'getAllData');
-            Route::post('/create', 'createData');
-            Route::get('/get/{id}', 'getDataById');
-            Route::post('/update/{id}', 'updateData');
-            Route::delete('/delete/{id}', 'deleteData');
-        });
-
-
         Route::prefix('jam')->controller(JamController::class)->group(function () {
             Route::get('/', 'getAllData');
             Route::post('/create', 'createData');
@@ -115,5 +113,4 @@ Route::middleware(['auth', 'web'])->group(function () {
         });
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     });
-
 });

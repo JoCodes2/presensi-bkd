@@ -43,9 +43,14 @@ class absensiService {
             const response = await this.ajaxRequest(`${appUrl}/presensi/bkd/`, 'GET');
             const allData = response.data || [];
             const today = moment().format('YYYY-MM-DD');
-            const todayData = allData.find(item => item.tanggal === today);
 
-            this.renderStatusUI(todayData);
+            let displayData = allData.find(item => item.tanggal === today);
+
+            if (!displayData && allData.length > 0) {
+                displayData = allData[0];
+            }
+
+            this.renderStatusUI(displayData);
             this.updateCurrentDateDisplay();
         } catch (error) {
             console.error('Gagal memuat status presensi:', error);

@@ -24,8 +24,8 @@ return new class extends Migration
             $table->decimal('lokasi_keluar_lat', 10, 8)->nullable();
             $table->decimal('lokasi_keluar_long', 11, 8)->nullable();
 
-            $table->enum('status_masuk', ['tepat_waktu', 'terlambat', 'tidak_absen'])->default(null);
-            $table->enum('status_keluar', ['tepat_waktu', 'pulang_cepat', 'tidak_absen'])->default(null);
+            $table->enum('status_masuk', ['tepat_waktu', 'terlambat', 'tidak_absen'])->nullable();
+            $table->enum('status_keluar', ['tepat_waktu', 'pulang_cepat', 'tidak_absen'])->nullable();
 
             $table->text('keterangan')->nullable();
 

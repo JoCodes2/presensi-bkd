@@ -34,13 +34,13 @@ class AuthRepositories implements AuthInterfaces
             ], 400);
         }
 
-        // 3. Cek Status Akun
-        if ($user->status !== 'active') {
+        if ($user->role === 'pegawai' && $user->status !== 'active') {
             return response()->json([
                 'code' => 403,
                 'message' => 'Akun Anda belum aktif atau ditangguhkan. Silahkan hubungi admin.'
             ], 403);
         }
+
 
         // Jika semua lolos, lakukan login
         Auth::login($user);

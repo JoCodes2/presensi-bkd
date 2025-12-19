@@ -11,7 +11,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+<!-- Helpers -->
+<script src="{{ asset('helper/helper.js') }}"></script>
     <script>
         let appUrl = '{{ env('APP_URL') }}';
     </script>
@@ -113,13 +116,27 @@
         </div> --}}
         <!-- Modal untuk lokasi -->
     </div>
-    @yield('scripts')
+
     <!--   Core JS Files   -->
 <script src="{{ asset('assets/js/core/jquery.3.2.1.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.43/moment-timezone-with-data.min.js"></script>
+ <script type="module">
+    import notifService from "{{ asset('js/services/notifUi.service.js') }}";
+
+    const notif = new notifService();
+
+    $(document).ready(() => {
+        notif.updateNotificationBadge();
+
+        setInterval(() => {
+            notif.updateNotificationBadge();
+        }, 5 * 60 * 1000);
+    });
+</script>
+ @yield('scripts')
 </body>
 
 </html>

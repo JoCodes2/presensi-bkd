@@ -10,8 +10,36 @@ class notifService {
             });
         });
     }
+    async updateNotificationBadge() {
+        const $badge = $('#notif-badge');
+
+        if (window.location.pathname.includes('notifikasi-ui')) {
+            $badge.addClass('hidden');
+            return;
+        }
+
+        try {
+            const response = await this.ajaxRequest(`${appUrl}/presensi/notifikasi/`, 'GET');
+            const notifications = response.data || [];
+
+            const sevenDaysAgo = moment().subtract(7, 'days').startOf('day');
+
+            const hasRecentNotif = notifications.some(n => moment(n.created_at).isAfter(sevenDaysAgo));
+
+            if (hasRecentNotif) {
+                $badge.removeClass('hidden').text('!');
+                $badge.addClass('animate-pulse');
+            } else {
+                $badge.addClass('hidden');
+            }
+        } catch (error) {
+            console.error("Gagal memperbarui badge notif", error);
+            $badge.addClass('hidden');
+        }
+    }
 
     async loadNotifPage() {
+        $('#notif-badge').addClass('hidden');
         const $container = $('#notif-page-container');
         try {
             const response = await this.ajaxRequest(`${appUrl}/presensi/notifikasi/`, 'GET');

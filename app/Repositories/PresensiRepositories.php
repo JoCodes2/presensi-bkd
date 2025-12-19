@@ -61,7 +61,6 @@ class PresensiRepositories implements PresensiInterfaces
             $today = $currentTime->toDateString();
             $nowTimeStr = $currentTime->format('H:i:s');
 
-            // 1. Cek apakah sudah melewati jam pulang kantor
             if ($jamKerja->jam_keluar && $nowTimeStr >= $jamKerja->jam_keluar) {
                 $waktuPulang = substr($jamKerja->jam_keluar, 0, 5);
                 return $this->error(
@@ -91,21 +90,15 @@ class PresensiRepositories implements PresensiInterfaces
                 );
             }
 
-            // --- LOGIKA BATAS TERLAMBAT (TESTING BY CODE) ---
+            $menitToleransi = 0;
 
-            // Ganti angka 5 di bawah ini untuk mengubah durasi testing (dalam menit)
-            $menitToleransi = 5;
-
-            // Buat objek waktu untuk Jam Masuk Resmi dan Deadline Toleransi
             $jamMasukResmi = Carbon::createFromFormat('H:i:s', $jamKerja->jam_masuk);
             $deadlineToleransi = $jamMasukResmi->copy()->addMinutes($menitToleransi);
 
             $statusMasuk = 'tepat_waktu';
 
-            // Bandingkan waktu sekarang dengan deadline toleransi
             if ($nowTimeStr > $deadlineToleransi->format('H:i:s')) {
                 $statusMasuk = 'terlambat';
-                // Panggil fungsi alert jika ada
                 if (method_exists($this, 'sendViolationAlert')) {
                     $this->sendViolationAlert($userId, 'terlambat');
                 }

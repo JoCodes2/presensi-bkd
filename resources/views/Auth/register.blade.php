@@ -99,7 +99,7 @@
                 </div>
 
                 {{-- Form --}}
-                <form  id="formRegister" enctype="multipart/form-data" class="space-y-5">
+              <form id="formRegister" onsubmit="return false;" method="POST" enctype="multipart/form-data" class="space-y-5">
                     @csrf
 
                     {{-- Nama & Email --}}
@@ -269,11 +269,11 @@
             </div>
         </div>
     </div>
-    <script src="{{ asset('assets/js/core/jquery.3.2.1.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.21.0/jquery.validate.min.js"
-     integrity="sha512-KFHXdr2oObHKI9w4Hv1XPKc898mE4kgYx58oqsc/JqqdLMDI4YjOLzom+EMlW8HFUd0QfjfAvxSL6sEq/a42fQ=="
-     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="{{ asset('assets/js/core/jquery.3.2.1.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.21.0/jquery.validate.min.js"></script>
 
-     <script type="module" src="{{ asset('js/controllers/register.controller.js')}}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.21.0/additional-methods.min.js"></script>
+
+<script type="module" src="{{ asset('js/controllers/register.controller.js')}}"></script>
 </body>
