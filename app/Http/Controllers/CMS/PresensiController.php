@@ -5,7 +5,7 @@ namespace App\Http\Controllers\CMS;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PresensiRequest;
 use App\Repositories\PresensiRepositories;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PresensiController extends Controller
 {
@@ -23,7 +23,8 @@ class PresensiController extends Controller
 
     public function presensiIn(PresensiRequest $request)
     {
-        $userId = $request->input('id_user');
+        $idUser = Auth::user();
+        $userId = $idUser->id;
         $lat = $request->input('latitude');
         $long = $request->input('longitude');
 
@@ -32,7 +33,8 @@ class PresensiController extends Controller
 
     public function presensiOut(PresensiRequest $request)
     {
-        $userId = $request->input('id_user');
+        $idUser = Auth::user();
+        $userId = $idUser->id;
         $lat = $request->input('latitude');
         $long = $request->input('longitude');
 

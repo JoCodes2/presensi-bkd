@@ -136,6 +136,14 @@ class pegawaiService {
             const result = await confirmDeleteAlert(`Apakah Anda yakin ingin ${actionText} akun ini?`);
 
             if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Mohon Tunggu',
+                    text: `Sedang ${actionText} akun...`,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 const formData = new FormData();
                 formData.append('status', status);
                 formData.append('_token', $('meta[name="csrf-token"]').attr('content'));

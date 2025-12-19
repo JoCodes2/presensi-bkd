@@ -2,8 +2,8 @@
     class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-light py-3 px-5 flex justify-between shadow-lg">
 
     {{-- HOME --}}
-    <a href="{{ url('/absensi') }}"
-        class="flex flex-col items-center {{ request()->is('absensi') ? 'text-primary' : 'text-gray-500' }}">
+    <a href="{{ url('/') }}"
+        class="flex flex-col items-center {{ request()->is('/') ? 'text-primary' : 'text-gray-500' }}">
         <i class="fas fa-home text-lg mb-1"></i>
         <span class="text-xs font-medium">HOME</span>
     </a>

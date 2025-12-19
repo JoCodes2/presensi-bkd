@@ -24,7 +24,6 @@ class PresensiRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_user' => 'required',
             'latitude' => 'required',
             'longitude' => 'required',
         ];

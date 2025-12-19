@@ -9,6 +9,8 @@ use App\Models\NotifikasiModel;
 use App\Models\PresensiModel;
 use App\Models\User;
 use App\Traits\HttpResponseTraits;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -32,10 +34,13 @@ class PresensiRepositories implements PresensiInterfaces
     public function getAllData()
     {
         try {
-            $data = $this->presensi
-                ->with(['user'])
-                ->orderBy('tanggal', 'desc')
-                ->get();
+            $user = Auth::user();
+            $query = $this->presensi->with(['user']);
+
+            if ($user->role !== 'admin') {
+                $query->where('id_user', $user->id);
+            }
+            $data = $query->orderBy('tanggal', 'desc')->get();
 
             return $this->success($data);
         } catch (\Exception $th) {
@@ -49,13 +54,15 @@ class PresensiRepositories implements PresensiInterfaces
     {
         try {
             $user = $this->userModel->with('lokasiKantor')->find($userId);
-
             $jamKerja = DB::table('jam_kerja')->where('is_active', true)->first();
 
+            // Ambil waktu saat ini (Pastikan timezone di config/app.php adalah Asia/Makassar)
+            $currentTime = now();
+            $today = $currentTime->toDateString();
+            $nowTimeStr = $currentTime->format('H:i:s');
 
-            $today = now()->toDateString();
-            $now = now()->format('H:i:s');
-            if ($jamKerja->jam_keluar && $now >= $jamKerja->jam_keluar) {
+            // 1. Cek apakah sudah melewati jam pulang kantor
+            if ($jamKerja->jam_keluar && $nowTimeStr >= $jamKerja->jam_keluar) {
                 $waktuPulang = substr($jamKerja->jam_keluar, 0, 5);
                 return $this->error(
                     'Anda tidak bisa presensi masuk. Waktu sudah melewati jam pulang kantor (' . $waktuPulang . ').',
@@ -63,6 +70,7 @@ class PresensiRepositories implements PresensiInterfaces
                 );
             }
 
+            // 2. Cek apakah user sudah presensi masuk hari ini
             $presensiExisting = $this->presensi
                 ->where('id_user', $userId)
                 ->where('tanggal', $today)
@@ -70,9 +78,10 @@ class PresensiRepositories implements PresensiInterfaces
                 ->first();
 
             if ($presensiExisting) {
-                return $this->error('Anda sudah presensi masuk hari ini. Hanya satu kali absen masuk yang diperbolehkan.', 400);
+                return $this->error('Anda sudah presensi masuk hari ini.', 400);
             }
 
+            // 3. Validasi Radius
             $cekRadius = $this->validasiRadius($lat, $long, $user->lokasiKantor);
             if (!$cekRadius['valid']) {
                 return $this->error(
@@ -82,26 +91,45 @@ class PresensiRepositories implements PresensiInterfaces
                 );
             }
 
+            // --- LOGIKA BATAS TERLAMBAT (TESTING BY CODE) ---
+
+            // Ganti angka 5 di bawah ini untuk mengubah durasi testing (dalam menit)
+            $menitToleransi = 5;
+
+            // Buat objek waktu untuk Jam Masuk Resmi dan Deadline Toleransi
+            $jamMasukResmi = Carbon::createFromFormat('H:i:s', $jamKerja->jam_masuk);
+            $deadlineToleransi = $jamMasukResmi->copy()->addMinutes($menitToleransi);
+
             $statusMasuk = 'tepat_waktu';
-            if ($now > $jamKerja->jam_masuk) {
+
+            // Bandingkan waktu sekarang dengan deadline toleransi
+            if ($nowTimeStr > $deadlineToleransi->format('H:i:s')) {
                 $statusMasuk = 'terlambat';
-                $this->sendViolationAlert($userId, 'terlambat');
+                // Panggil fungsi alert jika ada
+                if (method_exists($this, 'sendViolationAlert')) {
+                    $this->sendViolationAlert($userId, 'terlambat');
+                }
             }
 
+            // --- SIMPAN DATA KE DATABASE ---
             $data = $this->presensi->updateOrCreate(
                 [
                     'id_user' => $userId,
                     'tanggal' => $today,
                 ],
                 [
-                    'jam_masuk' => $now,
+                    'jam_masuk' => $nowTimeStr,
                     'lokasi_masuk_lat' => $lat,
                     'lokasi_masuk_long' => $long,
                     'status_masuk' => $statusMasuk,
                 ]
             );
 
-            return $this->success($data, 'Presensi masuk berhasil');
+            $pesan = $statusMasuk === 'terlambat'
+                ? 'Presensi masuk berhasil (Terlambat)'
+                : 'Presensi masuk berhasil (Tepat Waktu)';
+
+            return $this->success($data, $pesan);
         } catch (\Exception $th) {
             return $this->error($th->getMessage(), 400, $th, class_basename($this), __FUNCTION__);
         }

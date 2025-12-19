@@ -6,6 +6,7 @@ use App\Interfaces\NotifikasiInterfaces;
 use App\Models\NotifikasiModel;
 use App\Traits\HttpResponseTraits;
 use Carbon\Carbon; // Import Carbon
+use Illuminate\Support\Facades\Auth;
 
 class NotifikasiRepositories implements NotifikasiInterfaces
 {
@@ -20,18 +21,27 @@ class NotifikasiRepositories implements NotifikasiInterfaces
 
     public function getAllData()
     {
-        $data = $this->notifikasi::with('user')
-            ->orderBy('created_at', 'desc')
-            ->limit(50)
-            ->get();
+        try {
+            $user = Auth::user();
+            $query = $this->notifikasi::with('user');
 
-        if ($data->isEmpty()) {
-            return $this->dataNotFound('Tidak ada data notifikasi.');
+            if ($user->role != 'admin') {
+                $query->where('user_id', $user->id);
+            }
+
+            $data = $query->orderBy('created_at', 'desc')
+                ->limit(50)
+                ->get();
+
+            if ($data->isEmpty()) {
+                return $this->dataNotFound('Tidak ada data notifikasi.');
+            }
+
+            return $this->success($data);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
         }
-
-        return $this->success($data);
     }
-
 
     public function markAllAsRead(string $userId)
     {
