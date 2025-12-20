@@ -1,18 +1,24 @@
 @component('mail::message')
-# Peringatan Alpha / Tidak Absen
+# Peringatan Presensi
 
 Halo **{{ $user->name }}**,
 
-Kami informasikan bahwa Anda tercatat **Tidak Absen (Alpha)** pada tanggal **{{ $date }}**.
+@if($type === 'pulang')
+Kami informasikan bahwa Anda tercatat **LUPA ABSEN PULANG** pada tanggal **{{ $date }}**.
 
-Sistem kami tidak mendeteksi adanya presensi masuk maupun presensi keluar pada hari kerja tersebut.
+Sistem mendeteksi Anda telah melakukan presensi masuk, namun tidak melakukan presensi keluar hingga batas waktu yang ditentukan.
+@else
+Kami informasikan bahwa Anda tercatat **TIDAK HADIR (ALPHA)** pada tanggal **{{ $date }}**.
 
-Pelanggaran jenis ini dianggap serius. Mohon segera cek riwayat presensi Anda dan berikan klarifikasi kepada bagian administrasi jika ada kesalahan.
+Sistem kami tidak mendeteksi adanya aktivitas presensi masuk maupun keluar pada hari kerja tersebut.
+@endif
+
+Pelanggaran ini tercatat otomatis dalam sistem. Mohon segera cek riwayat presensi Anda dan berikan klarifikasi kepada bagian administrasi jika terdapat kendala teknis.
 
 @component('mail::button', ['url' => url('/login')])
-Cek Sistem Presensi
+Cek Riwayat Presensi
 @endcomponent
 
-Terima kasih,
+Terima kasih,<br>
 Tim HRD / Administrasi
 @endcomponent

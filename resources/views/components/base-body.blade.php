@@ -9,7 +9,7 @@
             <div class="card-header">
                 <div class="d-flex justify-content-end">
                     @if ($showExportButton)
-                        <button class="btn btn-success mr-2">
+                        <button class="btn btn-success mr-2 btnExport" >
                             <i class="fas fa-file-export pr-2"></i>Export
                         </button>
                     @endif

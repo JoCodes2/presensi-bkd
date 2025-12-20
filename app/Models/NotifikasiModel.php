@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids; // Karena Anda menggunakan UUID
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class NotifikasiModel extends Model
 {
-    use HasUuids;
+    use HasFactory, HasUuids;
 
     protected $table = 'notifikasi';
     protected $fillable = [

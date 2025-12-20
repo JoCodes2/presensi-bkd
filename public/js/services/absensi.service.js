@@ -42,13 +42,20 @@ class absensiService {
 
             const response = await this.ajaxRequest(`${appUrl}/presensi/bkd/`, 'GET');
             const allData = response.data || [];
-            const today = moment().format('YYYY-MM-DD');
 
-            let displayData = allData.find(item => item.tanggal === today);
+            // 1. Pastikan ambil tanggal hari ini dengan zona waktu yang benar (Makassar/WITA)
+            const today = moment().tz("Asia/Makassar").format('YYYY-MM-DD');
 
-            if (!displayData && allData.length > 0) {
-                displayData = allData[0];
-            }
+            // 2. Cari data yang HANYA untuk hari ini
+            let displayData = allData.find(item => {
+                // Pastikan format tanggal dari server dipotong hanya YYYY-MM-DD
+                const tglServer = item.tanggal.substring(0, 10);
+                return tglServer === today;
+            });
+
+            // 3. HAPUS LOGIKA FALLBACK allData[0]
+            // Jika displayData tidak ditemukan, biarkan bernilai undefined/null
+            // agar renderStatusUI menampilkan status "Belum Presensi"
 
             this.renderStatusUI(displayData);
             this.updateCurrentDateDisplay();
@@ -180,26 +187,38 @@ class absensiService {
         try {
             const coords = await this.getCurrentLocation();
 
+            // Validasi koordinat sebelum dikirim
+            if (!coords.lat || !coords.long) {
+                throw "Gagal mendapatkan koordinat lokasi.";
+            }
+
             const formData = new FormData();
             formData.append('latitude', coords.lat);
             formData.append('longitude', coords.long);
             formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
-            // Gunakan await untuk mendapatkan response sukses
-            const response = await this.ajaxRequest(`${appUrl}/presensi/bkd/${type}`, 'POST', formData);
-            console.log(response);
+            // Tambahkan Header Accept agar Laravel selalu mengembalikan JSON
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: `${appUrl}/presensi/bkd/${type}`,
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'Accept': 'application/json' // Penting agar error Laravel berbentuk JSON
+                    },
+                    success: (response) => resolve(response),
+                    error: (error) => reject(error)
+                });
+            });
 
-            return response;
-            // Di dalam catch submitPresensi service
         } catch (error) {
-            console.log("Original Error:", error); // Sangat membantu saat debug
+            console.error("Presensi Error:", error);
             if (error.responseJSON && error.responseJSON.message) {
                 throw error.responseJSON.message;
             }
-            // Jika server error 500 atau timeout
-            if (error.statusText === "error") throw "Koneksi ke server terputus.";
-
-            throw typeof error === 'string' ? error : "Terjadi kesalahan pada server.";
+            throw typeof error === 'string' ? error : "Gagal mengirim data presensi.";
         }
     }
 }

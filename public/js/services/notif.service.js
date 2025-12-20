@@ -183,18 +183,23 @@ class notifService {
         `);
 
         try {
-            // Panggil API tunggal
             const responseData = await this.ajaxRequest(`${appUrl}/presensi/notifikasi/`, 'GET');
             const notifications = responseData.data;
 
             if (notifications && Array.isArray(notifications)) {
 
-                // 1. Hitung Notif Belum Dibaca (untuk Badge)
-                const unreadCount = notifications.filter(notif => !notif.is_dibaca).length;
-                this.updateNotifBadge(unreadCount);
+                // 1. FILTER HANYA HARI INI
+                const today = moment().startOf('day');
+                const todayNotifications = notifications.filter(notif => {
+                    return moment(notif.created_at).isSameOrAfter(today);
+                });
 
-                // 2. Render Notif Hari Ini (Filter dilakukan di renderDropdownNotifications)
-                this.renderDropdownNotifications(notifications);
+                // 2. UPDATE BADGE (Hanya berdasarkan jumlah notifikasi hari ini)
+                // Jika hari berganti dan belum ada notif baru, angka otomatis jadi 0
+                this.updateNotifBadge(todayNotifications.length);
+
+                // 3. RENDER DROPDOWN
+                this.renderDropdownNotifications(todayNotifications);
 
             } else {
                 $content.html('<div class="text-center p-3 text-muted small">Tidak ada data notifikasi.</div>');

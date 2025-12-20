@@ -9,6 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
+
     public function up(): void
     {
         Schema::create('notifikasi', function (Blueprint $table) {
@@ -17,6 +18,8 @@ return new class extends Migration
             $table->enum('jenis', [
                 'terlambat',
                 'alpha',
+                'lupa_absen_pulang', // Tambahkan ini
+                'tidak_hadir',       // Tambahkan ini (opsional jika ingin beda dengan alpha)
                 'pelanggaran_izin',
                 'pelanggaran_cuti',
                 'verifikasi_akun',

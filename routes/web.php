@@ -38,6 +38,7 @@ Route::prefix('presensi/kantor')->controller(LokasiKantorController::class)->gro
     Route::post('/update/{id}', 'updateData');
     Route::delete('/delete/{id}', 'deleteData');
 });
+Route::get('/presensi/export', [PresensiController::class, 'exportExcel'])->name('presensi.export');
 // jabatan
 Route::prefix('presensi/jabatan')->controller(JabatanController::class)->group(function () {
     Route::get('/', 'getAllData');
