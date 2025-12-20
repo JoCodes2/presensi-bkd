@@ -15,11 +15,13 @@ class AlphaWarning extends Mailable
 
     public $user;
     public $date;
+    public $type;
 
-    public function __construct(User $user, string $date)
+    public function __construct($user, $date, $type)
     {
         $this->user = $user;
         $this->date = $date;
+        $this->type = $type;
     }
 
     public function envelope(): Envelope
@@ -36,6 +38,7 @@ class AlphaWarning extends Mailable
             with: [
                 'user' => $this->user,
                 'date' => $this->date,
+                'type' => $this->type,
             ],
         );
     }

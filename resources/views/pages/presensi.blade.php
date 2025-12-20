@@ -3,7 +3,6 @@
 @section('content')
 
     <x-base-header title="Kalender Presensi Pegawai" icon="fas fa-calendar-alt">
-
         <x-base-body :show-add-button="false" :show-export-button="true">
 
             <div class="row mb-4">
@@ -12,7 +11,7 @@
                         <label for="filterUser" class="font-weight-bold">Pilih Pegawai:</label>
                         <select id="filterUser" class="form-control select2">
                             <option value="">-- Tampilkan Semua --</option>
-                            </select>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -24,8 +23,31 @@
             </div>
 
         </x-base-body>
-
     </x-base-header>
+
+    {{-- Menggunakan Komponen Modal --}}
+    <x-base-modal id="modalExport" title="Export Laporan Presensi" icon="fas fa-file-export">
+        <form id="formExport">
+            <p class="text-muted small">Sistem akan mengekspor data seluruh pegawai berdasarkan rentang tanggal yang dipilih.</p>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Dari Tanggal</label>
+                    <input type="date" name="from_date" id="exportFrom" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Sampai Tanggal</label>
+                    <input type="date" name="to_date" id="exportTo" class="form-control" required>
+                </div>
+            </div>
+        </form>
+
+        <x-slot name="footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+            <button type="button" id="btnProcessExport" class="btn btn-primary">
+                <i class="fas fa-file-export me-1"></i> Mulai Export
+            </button>
+        </x-slot>
+    </x-base-modal>
 
 @endsection
 

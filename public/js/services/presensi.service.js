@@ -8,6 +8,24 @@ class PresensiService {
     }
 
     /**
+     * AMBIL DATA LIBUR NASIONAL (Filter Nasional Only)
+     */
+    async fetchLiburNasional() {
+        try {
+            const currentYear = new Date().getFullYear();
+            const response = await fetch(`https://api-harilibur.vercel.app/api?year=${currentYear}`);
+            const data = await response.json();
+
+            // Filter hanya hari libur nasional sesuai permintaan Anda
+            this.hariLiburNasional = data.filter(d => d.is_national_holiday);
+
+            console.log("Libur Nasional Terfilter:", this.hariLiburNasional);
+        } catch (error) {
+            console.error("Gagal load API libur:", error);
+        }
+    }
+
+    /**
      * MENGAMBIL DAFTAR PEGAWAI UNTUK DROPDOWN
      */
     async loadUsers() {
@@ -23,9 +41,7 @@ class PresensiService {
             const map = new Map();
 
             for (const item of allData) {
-                // Pastikan hanya role pegawai
                 if (item.user?.role !== 'pegawai') continue;
-
                 if (!map.has(item.id_user)) {
                     map.set(item.id_user, true);
                     uniqueUsers.push({
@@ -44,9 +60,6 @@ class PresensiService {
         }
     }
 
-    /**
-     * AMBIL DATA JAM KERJA (DARI DB)
-     */
     async fetchJamKerja() {
         try {
             const response = await $.ajax({ url: `${appUrl}/presensi/jam/`, type: 'GET' });
@@ -54,19 +67,6 @@ class PresensiService {
         } catch (error) { console.error("Gagal load jam kerja:", error); }
     }
 
-    /**
-     * AMBIL DATA LIBUR NASIONAL (DARI API LUAR)
-     */
-    async fetchLiburNasional() {
-        try {
-            const response = await fetch('https://api-harilibur.vercel.app/api');
-            this.hariLiburNasional = await response.json();
-        } catch (error) { console.error("Gagal load API libur:", error); }
-    }
-
-    /**
-     * KONFIGURASI WARNA & ICON STATUS
-     */
     getStatusConfig(type, status) {
         const isM = type === 'masuk';
         let conf = {
@@ -84,15 +84,11 @@ class PresensiService {
         return conf;
     }
 
-    /**
-     * INITIALIZE FULLCALENDAR
-     */
     async initCalendar() {
         const self = this;
         const calendarEl = document.getElementById('presensiCalendar');
         if (!calendarEl) return;
 
-        // Ambil semua data pendukung
         await Promise.all([this.fetchJamKerja(), this.fetchLiburNasional()]);
 
         this.calendar = new FullCalendar.Calendar(calendarEl, {
@@ -102,26 +98,25 @@ class PresensiService {
             fixedWeekCount: false,
             headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
 
-            // Menandai Hari Libur
-            // Menandai Hari Libur
             dayCellDidMount: function (info) {
                 const dateStr = info.date.toLocaleDateString('en-CA');
+
+                // Cari kecocokan di data yang sudah terfilter
                 const libur = self.hariLiburNasional.find(h => h.holiday_date === dateStr);
 
-                // Hapus label holiday lama jika ada (mencegah double)
                 const oldLabel = info.el.querySelector('.holiday-label');
                 if (oldLabel) oldLabel.remove();
 
                 if (libur) {
                     info.el.classList.add('bg-libur-nasional');
 
-                    // Buat elemen label baru
-                    let label = document.createElement('div');
-                    label.className = 'holiday-label';
-                    label.innerText = libur.holiday_name;
-
-                    // Masukkan ke dalam cell
-                    info.el.appendChild(label);
+                    const dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
+                    if (dayFrame) {
+                        let label = document.createElement('div');
+                        label.className = 'holiday-label';
+                        label.innerText = libur.holiday_name;
+                        dayFrame.appendChild(label);
+                    }
                 } else if (self.jamKerja) {
                     const days = ['minggu_kerja', 'senin_kerja', 'selasa_kerja', 'rabu_kerja', 'kamis_kerja', 'jumat_kerja', 'sabtu_kerja'];
                     if (!self.jamKerja[days[info.date.getDay()]]) {
@@ -130,7 +125,6 @@ class PresensiService {
                 }
             },
 
-            // Tampilan Event Modern
             eventContent: function (arg) {
                 let card = document.createElement('div');
                 card.className = 'modern-event-card';
@@ -147,7 +141,6 @@ class PresensiService {
                 return { domNodes: [card] };
             },
 
-            // Fetch Events (Presensi)
             events: async function (info, successCallback) {
                 const userId = $('#filterUser').val();
                 if (!userId) return successCallback([]);

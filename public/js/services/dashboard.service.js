@@ -112,7 +112,60 @@ class DashboardService {
         `;
         $('#yourAttendanceCard').find('.card-body').html(cardBodyContent);
     }
+    renderYourAttendance(jamKerja) {
+        const $cardHeader = $('#yourAttendanceCard').find('.card-header');
+        const $cardBody = $('#yourAttendanceCard').find('.card-body');
 
+        // 1. Dapatkan nama hari kerja sesuai kolom di database
+        const days = ['minggu_kerja', 'senin_kerja', 'selasa_kerja', 'rabu_kerja', 'kamis_kerja', 'jumat_kerja', 'sabtu_kerja'];
+        const todayIndex = new Date().getDay(); // 0 (Minggu) - 6 (Sabtu)
+        const dayColumn = days[todayIndex];
+
+        // 2. Cek apakah hari ini statusnya libur (false/0) di database
+        const isWorkingDay = jamKerja && jamKerja[dayColumn] == 1;
+
+        // Render Header Tetap Muncul
+        $cardHeader.html(`
+            <h5 class="mb-0"><i class="fas fa-calendar-day mr-2"></i> Jadwal Kerja Hari Ini</h5>
+            <small class="mt-1">Tanggal: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</small>
+        `);
+
+        // 3. Jika Tidak Ada Jadwal Kerja (Libur)
+        if (!isWorkingDay) {
+            $cardBody.html(`
+                <div class="text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-mug-hot fa-3x text-muted"></i>
+                    </div>
+                    <h5 class="text-secondary">Hari Ini Libur / Off</h5>
+                    <p class="text-muted small">Tidak ada aktivitas pelayanan/presensi berdasarkan pengaturan jam kerja.</p>
+                    <span class="badge badge-secondary px-3 py-2">STATUS: NON-AKTIF</span>
+                </div>
+            `);
+            return;
+        }
+
+        // 4. Jika Hari Kerja, Tampilkan Jadwal Seperti Biasa
+        const jamKerjaMasuk = jamKerja.jam_masuk.substring(0, 5);
+        const jamKerjaKeluar = jamKerja.jam_keluar.substring(0, 5);
+        const shiftDuration = this.calculateShiftDuration(jamKerja.jam_masuk, jamKerja.jam_keluar);
+
+        const cardBodyContent = `
+            <div class="row text-center p-3">
+                <div class="col-md-6 border-right">
+                    <h6 class="text-muted small uppercase">Jadwal Masuk</h6>
+                    <h2 class="display-4 text-primary font-weight-bold">${jamKerjaMasuk}</h2>
+                    <p class="text-sm m-0">Durasi Kerja: ${shiftDuration}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted small uppercase">Jadwal Pulang</h6>
+                    <h2 class="display-4 text-secondary font-weight-bold">${jamKerjaKeluar}</h2>
+                    <p class="text-sm m-0">Status: <span class="badge badge-success">Hari Kerja (${jamKerja.nama_shift})</span></p>
+                </div>
+            </div>
+        `;
+        $cardBody.html(cardBodyContent);
+    }
     /**
      * Merender tabel absensi dengan pengecekan status yang benar.
      */
@@ -145,9 +198,6 @@ class DashboardService {
                 </tr>
             `;
 
-            // --- Absen Pulang ---
-            // PERBAIKAN: Hilangkan (absen.status_keluar || 'tidak_absen')
-            // Cukup kirim absen.status_keluar agar fungsi formatStatusKeluar bisa mendeteksi null
             const statusKeluar = this.formatStatusKeluar(absen.status_keluar);
             const waktuPulang = absen.jam_keluar ? absen.jam_keluar.substring(0, 5) : '--:--';
 

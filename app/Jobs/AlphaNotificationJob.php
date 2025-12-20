@@ -15,15 +15,18 @@ class AlphaNotificationJob implements ShouldQueue
 
     protected $userId;
     protected $date;
+    protected $type; // 'total' atau 'pulang'
 
-    public function __construct(string $userId, string $date)
+    public function __construct(string $userId, string $date, string $type = 'total')
     {
         $this->userId = $userId;
         $this->date = $date;
+        $this->type = $type;
     }
 
     public function handle(PresensiRepositories $presensiRepo)
     {
-        $presensiRepo->processSingleAlphaUser($this->userId, $this->date);
+        // Kirim type ke repository
+        $presensiRepo->processSingleAlphaUser($this->userId, $this->date, $this->type);
     }
 }

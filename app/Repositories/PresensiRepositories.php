@@ -12,6 +12,7 @@ use App\Traits\HttpResponseTraits;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class PresensiRepositories implements PresensiInterfaces
@@ -90,14 +91,10 @@ class PresensiRepositories implements PresensiInterfaces
                 );
             }
 
-            $menitToleransi = 0;
-
-            $jamMasukResmi = Carbon::createFromFormat('H:i:s', $jamKerja->jam_masuk);
-            $deadlineToleransi = $jamMasukResmi->copy()->addMinutes($menitToleransi);
+            $deadlineTerlambat = $jamKerja->batas_terlambat;
 
             $statusMasuk = 'tepat_waktu';
-
-            if ($nowTimeStr > $deadlineToleransi->format('H:i:s')) {
+            if ($nowTimeStr > $deadlineTerlambat) {
                 $statusMasuk = 'terlambat';
                 if (method_exists($this, 'sendViolationAlert')) {
                     $this->sendViolationAlert($userId, 'terlambat');
@@ -245,45 +242,80 @@ class PresensiRepositories implements PresensiInterfaces
 
         $this->createNotificationRecord($userId, $notifJenis, $pesan);
 
+
         Mail::to($user->email)->send(new DailyViolationWarning($user, $violationType));
     }
 
 
+
+
+
     private function createNotificationRecord(string $userId, string $jenis, string $pesan, array $metadata = null)
     {
-        return $this->nottif::create([
-            'user_id' => $userId,
-            'jenis'   => $jenis,
-            'pesan'   => $pesan,
-            'metadata' => $metadata,
-        ]);
+        try {
+            return $this->nottif::create([
+                'user_id'   => $userId,
+                'jenis'     => $jenis,
+                'pesan'     => $pesan,
+                'metadata'  => $metadata,
+                'is_dibaca' => false,
+            ]);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
 
-    public function processSingleAlphaUser(string $userId, string $date)
+    public function processSingleAlphaUser(string $userId, string $date, string $type = 'total')
     {
-        $user = $this->userModel::find($userId);
+        $user = User::find($userId);
         if (!$user) return;
 
-        $this->presensi::updateOrCreate(
-            ['id_user' => $userId, 'tanggal' => $date],
-            [
-                'jam_masuk' => null,
-                'jam_keluar' => null,
+        $existingPresensi = PresensiModel::where('id_user', $userId)
+            ->where('tanggal', $date)
+            ->first();
+
+        if ($existingPresensi) {
+            if ($existingPresensi->jam_masuk && is_null($existingPresensi->status_keluar)) {
+                $existingPresensi->update([
+                    'status_keluar' => 'tidak_absen',
+                    'keterangan' => 'Sistem: Tidak Absen Pulang (Lupa)'
+                ]);
+
+                $this->createNotificationRecord($userId, 'lupa_absen_pulang', "Anda lupa absen pulang pada tanggal $date.", [
+                    'tanggal' => $date,
+                ]);
+
+                $this->sendAlphaAlert($user, $date, 'pulang');
+            }
+        } else if ($type === 'total') {
+            // Kasus Alpha Total
+            PresensiModel::create([
+                'id_user' => $userId,
+                'tanggal' => $date,
                 'status_masuk' => 'tidak_absen',
                 'status_keluar' => 'tidak_absen',
-                'keterangan' => 'Alpha / Tidak Absen Masuk dan Pulang'
-            ]
-        );
+                'keterangan' => 'Sistem: Alpha (Tidak Masuk & Pulang)'
+            ]);
+            $this->createNotificationRecord($userId, 'alpha', "Anda tercatat Alpha (Tidak Hadir) pada tanggal $date.", [
+                'tanggal' => $date,
+            ]);
 
-        $this->sendAlphaAlert($user, $date);
+            $this->sendAlphaAlert($user, $date, 'total');
+        }
     }
-    private function sendAlphaAlert(User $user, string $date)
+
+
+    private function sendAlphaAlert(User $user, string $date, string $type)
     {
-        $pesan = "Anda tercatat Tidak Absen (Alpha) pada tanggal " . $date . ". Mohon segera klarifikasi.";
+        try {
+            $pesan = ($type === 'pulang')
+                ? "Anda lupa absen pulang pada $date"
+                : "Anda tercatat Alpha (Tidak Hadir) pada $date";
 
-        $this->createNotificationRecord($user->id, 'alpha', $pesan);
-
-        Mail::to($user->email)->send(new AlphaWarning($user, $date));
+            Mail::to($user->email)->send(new AlphaWarning($user, $date, $type));
+        } catch (\Exception $e) {
+            Log::error("Gagal kirim email Alpha ke " . $user->email . ": " . $e->getMessage());
+        }
     }
 }

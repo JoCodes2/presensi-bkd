@@ -48,7 +48,7 @@ class JamRepositories implements JamInterfaces
             $data->jumat_kerja  = $request->boolean('jumat_kerja');
             $data->sabtu_kerja  = $request->boolean('sabtu_kerja');
             $data->minggu_kerja = $request->boolean('minggu_kerja');
-
+            $data->batas_terlambat = $request->boolean('batas_terlambat');
             $data->save();
             return $this->success($data);
         } catch (\Throwable $th) {
