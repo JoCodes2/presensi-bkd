@@ -28,7 +28,7 @@ $(document).ready(function () {
         $('#info-email').text(data.email || '-');
 
         if (data.foto_profile) {
-            $('#display-foto').attr('src', `${appUrl}/${data.foto_profile}`);
+            $('#display-foto').attr('src', `${appUrl}/profile/${data.foto_profile}`);
         }
     }
 
