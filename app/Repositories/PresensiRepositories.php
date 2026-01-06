@@ -91,15 +91,16 @@ class PresensiRepositories implements PresensiInterfaces
                 );
             }
 
-            $deadlineTerlambat = $jamKerja->batas_terlambat;
-
             $statusMasuk = 'tepat_waktu';
-            if ($nowTimeStr > $deadlineTerlambat) {
+
+            if ($nowTimeStr > $jamKerja->batas_terlambat) {
                 $statusMasuk = 'terlambat';
+
                 if (method_exists($this, 'sendViolationAlert')) {
                     $this->sendViolationAlert($userId, 'terlambat');
                 }
             }
+
 
             // --- SIMPAN DATA KE DATABASE ---
             $data = $this->presensi->updateOrCreate(
