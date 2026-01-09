@@ -93,7 +93,10 @@ class PresensiRepositories implements PresensiInterfaces
 
             $statusMasuk = 'tepat_waktu';
 
-            if ($nowTimeStr > $jamKerja->batas_terlambat) {
+            $waktuSekarang = $currentTime;
+            $batasTerlambat = Carbon::createFromFormat('H:i:s', $jamKerja->batas_terlambat);
+
+            if ($waktuSekarang->greaterThan($batasTerlambat)) {
                 $statusMasuk = 'terlambat';
 
                 if (method_exists($this, 'sendViolationAlert')) {

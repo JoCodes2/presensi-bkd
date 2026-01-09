@@ -24,16 +24,40 @@ class absensiService {
     async loadJamKerja() {
         try {
             const response = await this.ajaxRequest(`${appUrl}/presensi/jam/`, 'GET');
-            const jamKerja = response.data && response.data.length > 0 ? response.data[0] : null;
+            const jamKerja = (response.data && response.data.length > 0) ? response.data[0] : null;
 
             if (jamKerja) {
-                this.jamKerjaConfig = jamKerja;
-                $('#display-jadwal-masuk').text(jamKerja.jam_masuk.substring(0, 5));
-                $('#display-jadwal-pulang').text(jamKerja.jam_keluar.substring(0, 5));
+                // Mapping nama hari dari moment.js ke property database
+                const dayNames = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+                const todayIndex = moment().tz("Asia/Makassar").day(); // 0 (Minggu) - 6 (Sabtu)
+                const propName = `${dayNames[todayIndex]}_kerja`;
+
+                // Cek apakah hari ini diset "true" di database
+                const isHariKerja = jamKerja[propName] === true || jamKerja[propName] === 1;
+
+                if (isHariKerja) {
+                    this.jamKerjaConfig = jamKerja;
+                    $('#display-jadwal-masuk').text(jamKerja.jam_masuk.substring(0, 5));
+                    $('#display-jadwal-pulang').text(jamKerja.jam_keluar.substring(0, 5));
+                } else {
+                    // Hari ini terjadwal LIBUR (OFF)
+                    this.jamKerjaConfig = 'OFF';
+                    this.setLiburUI("JADWAL LIBUR (OFF)");
+                }
+            } else {
+                this.jamKerjaConfig = null;
+                this.setLiburUI("TIDAK ADA JADWAL");
             }
         } catch (error) {
             console.error("Gagal memuat jam kerja", error);
+            this.jamKerjaConfig = null;
         }
+    }
+
+    // Helper untuk tampilan header saat libur
+    setLiburUI(pesan) {
+        $('#display-jadwal-masuk').text('--:--');
+        $('#display-jadwal-pulang').text('--:--');
     }
 
     async updateTodayStatus() {
@@ -68,7 +92,23 @@ class absensiService {
         const $jamMasuk = $('#jam-masuk'), $statusMasuk = $('#status-masuk');
         const $jamPulang = $('#jam-pulang'), $statusPulang = $('#status-pulang');
         const $btnMasuk = $('#btn-absen-masuk'), $btnPulang = $('#btn-absen-pulang');
+        if (!this.jamKerjaConfig || this.jamKerjaConfig === 'OFF') {
+            const pesanStatus = this.jamKerjaConfig === 'OFF' ? 'HARI LIBUR (OFF)' : 'HARI LIBUR (OFF)';
 
+            $jamMasuk.text('-- : --');
+            $jamPulang.text('-- : --');
+
+            this.disableButton($btnMasuk, 'SISTEM TERKUNCI');
+            this.disableButton($btnPulang, 'SISTEM TERKUNCI');
+
+            const labelLibur = `<span class="px-2 py-1 bg-red-50 text-red-600 text-[10px] font-bold rounded uppercase">${pesanStatus}</span>`;
+            $statusMasuk.html(labelLibur);
+            $statusPulang.html(labelLibur);
+
+            $btnMasuk.find('small').text('Tidak dapat melakukan presensi');
+            $btnPulang.find('small').text('Silahkan istirahat');
+            return;
+        }
         // 1. Paksa menggunakan zona waktu Makassar agar sinkron dengan server
         const now = moment().tz("Asia/Makassar");
 
