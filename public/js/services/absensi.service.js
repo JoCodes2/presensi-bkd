@@ -11,10 +11,8 @@ class absensiService {
                 url: url,
                 method: method,
                 data: data,
-                // --- INI PERBAIKANNYA ---
-                processData: isFormData ? false : true, // Jangan proses data jika FormData
-                contentType: isFormData ? false : 'application/x-www-form-urlencoded; charset=UTF-8', // Jangan atur contentType jika FormData
-                // ------------------------
+                processData: isFormData ? false : true,
+                contentType: isFormData ? false : 'application/x-www-form-urlencoded; charset=UTF-8',
                 success: (response) => resolve(response),
                 error: (error) => reject(error),
             });
@@ -27,20 +25,19 @@ class absensiService {
             const jamKerja = (response.data && response.data.length > 0) ? response.data[0] : null;
 
             if (jamKerja) {
-                // Mapping nama hari dari moment.js ke property database
                 const dayNames = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
-                const todayIndex = moment().tz("Asia/Makassar").day(); // 0 (Minggu) - 6 (Sabtu)
+                const nowMakassar = moment().tz("Asia/Makassar");
+                const todayIndex = nowMakassar.day();
                 const propName = `${dayNames[todayIndex]}_kerja`;
 
-                // Cek apakah hari ini diset "true" di database
                 const isHariKerja = jamKerja[propName] === true || jamKerja[propName] === 1;
 
                 if (isHariKerja) {
                     this.jamKerjaConfig = jamKerja;
-                    $('#display-jadwal-masuk').text(jamKerja.jam_masuk.substring(0, 5));
-                    $('#display-jadwal-pulang').text(jamKerja.jam_keluar.substring(0, 5));
+
+                    $('#display-jadwal-masuk').text((jamKerja.jam_masuk || '--:--:--').substring(0, 5));
+                    $('#display-jadwal-pulang').text((jamKerja.jam_keluar || '--:--:--').substring(0, 5));
                 } else {
-                    // Hari ini terjadwal LIBUR (OFF)
                     this.jamKerjaConfig = 'OFF';
                     this.setLiburUI("JADWAL LIBUR (OFF)");
                 }
@@ -49,51 +46,48 @@ class absensiService {
                 this.setLiburUI("TIDAK ADA JADWAL");
             }
         } catch (error) {
-            console.error("Gagal memuat jam kerja", error);
             this.jamKerjaConfig = null;
+            this.setLiburUI("GAGAL MEMUAT JADWAL");
         }
     }
 
-    // Helper untuk tampilan header saat libur
-    setLiburUI(pesan) {
+    setLiburUI() {
         $('#display-jadwal-masuk').text('--:--');
         $('#display-jadwal-pulang').text('--:--');
     }
 
     async updateTodayStatus() {
         try {
-            if (!this.jamKerjaConfig) await this.loadJamKerja();
+            if (!this.jamKerjaConfig) {
+                await this.loadJamKerja();
+            }
 
             const response = await this.ajaxRequest(`${appUrl}/presensi/bkd/`, 'GET');
             const allData = response.data || [];
 
-            // 1. Pastikan ambil tanggal hari ini dengan zona waktu yang benar (Makassar/WITA)
             const today = moment().tz("Asia/Makassar").format('YYYY-MM-DD');
 
-            // 2. Cari data yang HANYA untuk hari ini
             let displayData = allData.find(item => {
-                // Pastikan format tanggal dari server dipotong hanya YYYY-MM-DD
-                const tglServer = item.tanggal.substring(0, 10);
+                const tglServer = (item.tanggal || '').substring(0, 10);
                 return tglServer === today;
             });
-
-            // 3. HAPUS LOGIKA FALLBACK allData[0]
-            // Jika displayData tidak ditemukan, biarkan bernilai undefined/null
-            // agar renderStatusUI menampilkan status "Belum Presensi"
 
             this.renderStatusUI(displayData);
             this.updateCurrentDateDisplay();
         } catch (error) {
-            console.error('Gagal memuat status presensi:', error);
         }
     }
 
     renderStatusUI(data) {
-        const $jamMasuk = $('#jam-masuk'), $statusMasuk = $('#status-masuk');
-        const $jamPulang = $('#jam-pulang'), $statusPulang = $('#status-pulang');
-        const $btnMasuk = $('#btn-absen-masuk'), $btnPulang = $('#btn-absen-pulang');
+        const $jamMasuk = $('#jam-masuk');
+        const $statusMasuk = $('#status-masuk');
+        const $jamPulang = $('#jam-pulang');
+        const $statusPulang = $('#status-pulang');
+        const $btnMasuk = $('#btn-absen-masuk');
+        const $btnPulang = $('#btn-absen-pulang');
+
         if (!this.jamKerjaConfig || this.jamKerjaConfig === 'OFF') {
-            const pesanStatus = this.jamKerjaConfig === 'OFF' ? 'HARI LIBUR (OFF)' : 'HARI LIBUR (OFF)';
+            const pesanStatus = 'HARI LIBUR (OFF)';
 
             $jamMasuk.text('-- : --');
             $jamPulang.text('-- : --');
@@ -109,33 +103,37 @@ class absensiService {
             $btnPulang.find('small').text('Silahkan istirahat');
             return;
         }
-        // 1. Paksa menggunakan zona waktu Makassar agar sinkron dengan server
+
         const now = moment().tz("Asia/Makassar");
+        const todayDate = now.format('YYYY-MM-DD');
 
-        // Ambil string jam kerja atau default jam 5 sore
-        const jamPulangKantorStr = this.jamKerjaConfig ? this.jamKerjaConfig.jam_keluar : "17:00:00";
-        const jamMasukKantorStr = this.jamKerjaConfig ? this.jamKerjaConfig.jam_masuk : "08:00:00";
+        const jamMasukKantorStr = this.jamKerjaConfig?.jam_masuk || "08:00:00";
+        const jamPulangKantorStr = this.jamKerjaConfig?.jam_keluar || "17:00:00";
 
-        // Buat objek moment untuk perbandingan
-        const jamPulangKantor = moment.tz(jamPulangKantorStr, "HH:mm:ss", "Asia/Makassar");
-        const batasTutupSistem = moment.tz(jamPulangKantorStr, "HH:mm:ss", "Asia/Makassar").add(1, 'hours');
+        const jamMasukKantor = moment.tz(`${todayDate} ${jamMasukKantorStr}`, "YYYY-MM-DD HH:mm:ss", "Asia/Makassar");
+        const jamPulangKantor = moment.tz(`${todayDate} ${jamPulangKantorStr}`, "YYYY-MM-DD HH:mm:ss", "Asia/Makassar");
+        const batasTutupSistem = jamPulangKantor.clone().add(1, 'hours');
 
-        // Label Default saat tombol aktif
         this.resetButton($btnMasuk, '', 'PRESENSI MASUK');
         this.resetButton($btnPulang, '', 'PRESENSI PULANG');
 
-        // --- LOGIKA TOMBOL MASUK ---
         if (data && data.jam_masuk && data.status_masuk !== 'tidak_absen') {
             $jamMasuk.text(data.jam_masuk);
             this.disableButton($btnMasuk, 'SUDAH CHECK-IN');
-            const color = data.status_masuk === 'terlambat' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700';
-            $statusMasuk.html(`<span class="px-2 py-1 ${color} text-[10px] font-bold rounded uppercase">${data.status_masuk.replace('_', ' ')}</span>`);
+
+            const color = data.status_masuk === 'terlambat'
+                ? 'bg-orange-100 text-orange-700'
+                : 'bg-green-100 text-green-700';
+
+            $statusMasuk.html(`<span class="px-2 py-1 ${color} text-[10px] font-bold rounded uppercase">${String(data.status_masuk).replace('_', ' ')}</span>`);
         } else {
             $jamMasuk.text('-- : -- : --');
+
             if ((data && data.status_masuk === 'tidak_absen') || now.isAfter(batasTutupSistem)) {
                 this.disableButton($btnMasuk, 'BATAS WAKTU HABIS');
                 $statusMasuk.html(`<span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded uppercase">Tidak Hadir</span>`);
             } else {
+                this.resetButton($btnMasuk, '', 'PRESENSI MASUK');
                 $statusMasuk.html(`<span class="px-2 py-1 bg-gray-200 text-gray-500 text-[10px] font-bold rounded uppercase">Belum Presensi</span>`);
             }
         }
@@ -170,36 +168,48 @@ class absensiService {
         }
     }
 
-    /**
-     * Helper untuk mematikan tombol (Visual & Fungsi)
-     */
     disableButton($btn, text) {
         $btn.prop('disabled', true)
-            .addClass('opacity-50 cursor-not-allowed grayscale')
-            .find('span').text(text);
+            .addClass('opacity-50 cursor-not-allowed grayscale');
+
+        $btn.find('span').text(text);
         $btn.find('small').text('Akses dikunci');
     }
 
-    /**
-     * Helper untuk mengembalikan tombol
-     */
     resetButton($btn, colorClass, text) {
         let subText = "Klik untuk merekam kehadiran";
+
         if (text.includes("MASUK") || text.includes("IN")) {
             subText = "Klik untuk Check-in";
         } else if (text.includes("PULANG") || text.includes("OUT")) {
             subText = "Klik untuk Check-out";
         }
+
+        $btn.prop('disabled', false)
+            .removeClass('opacity-50 cursor-not-allowed grayscale');
+
+        if (colorClass) {
+            $btn.addClass(colorClass);
+        }
+
+        $btn.find('span').text(text);
+        $btn.find('small').text(subText);
     }
 
     updateCurrentDateDisplay() {
         moment.locale('id');
-        $('#current-date').text(moment().format('dddd, DD MMMM YYYY'));
+
+        const nowMakassar = moment().tz("Asia/Makassar");
+        const formattedDate = nowMakassar.format('dddd, DD MMMM YYYY');
+
+        $('#current-date').text(formattedDate);
     }
+
     getCurrentLocation() {
         return new Promise((resolve, reject) => {
             if (!navigator.geolocation) {
                 reject("Geolocation tidak didukung oleh browser Anda.");
+                return;
             }
 
             navigator.geolocation.getCurrentPosition(
@@ -214,20 +224,15 @@ class absensiService {
                     if (error.code === 3) msg = "Waktu pengambilan lokasi habis (Timeout). Coba lagi.";
                     reject(msg);
                 },
-                // Naikkan timeout ke 10000ms (10 detik)
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         });
     }
 
-    /**
-     * Kirim data presensi ke Backend
-     */
     async submitPresensi(type) {
         try {
             const coords = await this.getCurrentLocation();
 
-            // Validasi koordinat sebelum dikirim
             if (!coords.lat || !coords.long) {
                 throw "Gagal mendapatkan koordinat lokasi.";
             }
@@ -237,7 +242,6 @@ class absensiService {
             formData.append('longitude', coords.long);
             formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
-            // Tambahkan Header Accept agar Laravel selalu mengembalikan JSON
             return new Promise((resolve, reject) => {
                 $.ajax({
                     url: `${appUrl}/presensi/bkd/${type}`,
@@ -246,7 +250,7 @@ class absensiService {
                     processData: false,
                     contentType: false,
                     headers: {
-                        'Accept': 'application/json' // Penting agar error Laravel berbentuk JSON
+                        'Accept': 'application/json'
                     },
                     success: (response) => resolve(response),
                     error: (error) => reject(error)
@@ -254,10 +258,10 @@ class absensiService {
             });
 
         } catch (error) {
-            console.error("Presensi Error:", error);
             if (error.responseJSON && error.responseJSON.message) {
                 throw error.responseJSON.message;
             }
+
             throw typeof error === 'string' ? error : "Gagal mengirim data presensi.";
         }
     }

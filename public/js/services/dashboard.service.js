@@ -216,8 +216,9 @@ class DashboardService {
 
     async loadDashboardData() {
         try {
-            const now = new Date();
-            const today = now.toISOString().split('T')[0];
+            const today = new Date().toLocaleDateString('en-CA', {
+                timeZone: 'Asia/Makassar'
+            });
 
             this.setLoadingState();
 
@@ -228,10 +229,14 @@ class DashboardService {
 
             const jamKerja = jamKerjaResponse.data && jamKerjaResponse.data.length > 0 ? jamKerjaResponse.data[0] : null;
             const allData = absensiPegawaiResponse.data || [];
+            console.log(jamKerja);
+
+            console.log(allData);
 
             const absensiPegawaiHariIni = allData.filter(absen => {
-                return absen.tanggal && absen.tanggal.substring(0, 10) === today;
+                return absen.tanggal && String(absen.tanggal).substring(0, 10) === today;
             });
+            console.log(absensiPegawaiHariIni);
 
             this.renderYourAttendance(jamKerja);
             this.renderEmployeeAttendance(absensiPegawaiHariIni);
@@ -241,7 +246,6 @@ class DashboardService {
             this.setErrorState();
         }
     }
-
     setLoadingState() {
         const loadingHtml = '<div class="text-center p-5"><i class="fas fa-circle-notch fa-spin fa-2x text-primary"></i><p class="mt-2">Memproses data...</p></div>';
         const loadingRow = '<tr><td colspan="3" class="text-center p-3"><i class="fas fa-sync fa-spin"></i></td></tr>';

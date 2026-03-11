@@ -34,4 +34,4 @@ Schedule::call(function () {
     foreach ($lupaPulangUsers as $presensi) {
         AlphaNotificationJob::dispatch($presensi->id_user, $today, 'pulang');
     }
-})->dailyAt('23:00');
+})->everyMinute();
